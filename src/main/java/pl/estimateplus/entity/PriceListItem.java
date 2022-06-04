@@ -21,17 +21,27 @@ public class PriceListItem {
     private String description;
     @NotBlank
     private String brand;
-    @NotBlank
     private String comment;
     private BigInteger unitNetPrice;
     @NotBlank
     private String unit;
-    private int baseVatRate;
+    private Integer baseVatRate;
     @Convert(converter = LocalDateTimeAttributeConverter.class)
-    private LocalDateTime addedOn;
+    private LocalDateTime addedOn = null;
 
 
     public PriceListItem() {
+    }
+
+    public PriceListItem(String vendorName, String referenceNumber, String description, String brand, String comment, BigInteger unitNetPrice, String unit, Integer baseVatRate) {
+        this.vendorName = vendorName;
+        this.referenceNumber = referenceNumber;
+        this.description = description;
+        this.brand = brand;
+        this.comment = comment;
+        this.unitNetPrice = unitNetPrice;
+        this.unit = unit;
+        this.baseVatRate = baseVatRate;
     }
 
     @PrePersist
@@ -103,11 +113,11 @@ public class PriceListItem {
         this.unit = unit;
     }
 
-    public int getBaseVatRate() {
+    public Integer getBaseVatRate() {
         return baseVatRate;
     }
 
-    public void setBaseVatRate(int baseVatRate) {
+    public void setBaseVatRate(Integer baseVatRate) {
         this.baseVatRate = baseVatRate;
     }
 
