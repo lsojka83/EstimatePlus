@@ -1,6 +1,7 @@
 package pl.estimateplus.entity;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -11,10 +12,11 @@ public class EstimateItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private int individualVatRate;
-    private BigInteger vatAmount;
-    private BigInteger unitGrossPrice;
-    @OneToMany
-    private List<PriceListItem> priceListItems;
+//    private BigInteger vatAmount;
+    private BigDecimal totalNetPrice;
+    private int quantity;
+    @OneToOne
+    private PriceListItem priceListItem;
 
     public EstimateItem() {
     }
@@ -35,38 +37,37 @@ public class EstimateItem {
         this.individualVatRate = individualVatRate;
     }
 
-    public BigInteger getVatAmount() {
-        return vatAmount;
+//    public BigInteger getVatAmount() {
+//        return vatAmount;
+//    }
+//
+//    public void setVatAmount(BigInteger vatAmount) {
+//        this.vatAmount = vatAmount;
+//    }
+
+
+    public BigDecimal getTotalNetPrice() {
+        return totalNetPrice;
     }
 
-    public void setVatAmount(BigInteger vatAmount) {
-        this.vatAmount = vatAmount;
+    public void setTotalNetPrice(BigDecimal totalNetPrice) {
+        this.totalNetPrice = totalNetPrice;
     }
 
-    public BigInteger getUnitGrossPrice() {
-        return unitGrossPrice;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setUnitGrossPrice(BigInteger unitGrossPrice) {
-        this.unitGrossPrice = unitGrossPrice;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
-    public List<PriceListItem> getPriceListItems() {
-        return priceListItems;
+    public PriceListItem getPriceListItem() {
+        return priceListItem;
     }
 
-    public void setPriceListItems(List<PriceListItem> priceListItems) {
-        this.priceListItems = priceListItems;
+    public void setPriceListItem(PriceListItem priceListItem) {
+        this.priceListItem = priceListItem;
     }
 
-    @Override
-    public String toString() {
-        return "EstimateItem{" +
-                "id=" + id +
-                ", individualVatRate=" + individualVatRate +
-                ", vatAmount=" + vatAmount +
-                ", unitGrossPrice=" + unitGrossPrice +
-                ", priceListItems=" + priceListItems +
-                '}';
-    }
 }

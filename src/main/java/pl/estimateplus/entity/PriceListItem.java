@@ -4,6 +4,7 @@ import pl.estimateplus.converter.LocalDateTimeAttributeConverter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
@@ -22,7 +23,7 @@ public class PriceListItem {
     @NotBlank
     private String brand;
     private String comment;
-    private BigInteger unitNetPrice;
+    private BigDecimal unitNetPrice;
     @NotBlank
     private String unit;
     private Integer baseVatRate;
@@ -33,7 +34,7 @@ public class PriceListItem {
     public PriceListItem() {
     }
 
-    public PriceListItem(String vendorName, String referenceNumber, String description, String brand, String comment, BigInteger unitNetPrice, String unit, Integer baseVatRate) {
+    public PriceListItem(String vendorName, String referenceNumber, String description, String brand, String comment, BigDecimal unitNetPrice, String unit, Integer baseVatRate) {
         this.vendorName = vendorName;
         this.referenceNumber = referenceNumber;
         this.description = description;
@@ -97,11 +98,11 @@ public class PriceListItem {
         this.comment = comment;
     }
 
-    public BigInteger getUnitNetPrice() {
+    public BigDecimal getUnitNetPrice() {
         return unitNetPrice;
     }
 
-    public void setUnitNetPrice(BigInteger unitNetPrice) {
+    public void setUnitNetPrice(BigDecimal unitNetPrice) {
         this.unitNetPrice = unitNetPrice;
     }
 

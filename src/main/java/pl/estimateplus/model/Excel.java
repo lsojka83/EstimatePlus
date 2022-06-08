@@ -1,19 +1,20 @@
 package pl.estimateplus.model;
 
 
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ClassPathResource;
 
 import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
+import pl.estimateplus.entity.PriceList;
 import pl.estimateplus.entity.PriceListItem;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 
-import java.io.InputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -21,34 +22,55 @@ import java.util.*;
 public class Excel {
 
 
-    public static void main(String[] args) {
-        importExcelData();
+    public static void main(String[] args) throws IOException {
+//        importExcelData();
+
+//        File file = null; //direct run
+//        String fileLocation = "Legrand.xlsx";
+//        String fileLocation1 = "targetFile.tmp";
+//        Resource resource = new ClassPathResource(fileLocation);
+//        try {
+//            file = resource.getFile();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println(resource.getFile().getName().split("\\.")[0]);
+
     }
 
 
-    public static List<PriceListItem> importExcelData() {
+    public static PriceList importExcelData(MultipartFile multipartFile) {
 
+        PriceList priceList = new PriceList();
+        int itemsCount = 0;
+        String priceListName = multipartFile.getOriginalFilename();
+        System.out.println(priceListName);
 
-//        FileInputStream file = null; //direct run
+        //load file
         File file = null; //webapp
+        String fileLocation = "targetFile.tmp";
+        Resource resource = new ClassPathResource(fileLocation);
+        try {
+            file = resource.getFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try (OutputStream os = new FileOutputStream(file)) {
+            os.write(multipartFile.getBytes());
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         Workbook workbook = null;
         List<PriceListItem> priceListItems = new ArrayList<>();
 
-        String fileLocation = "Legrand.xlsx";
-        Resource resource = new ClassPathResource(fileLocation);
-
         try {
-//            InputStream input =  resource.getInputStream();
-//            file = new FileInputStream(new File(fileLocation));
-
-            file = resource.getFile();
             workbook = new XSSFWorkbook(file);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        catch (InvalidFormatException e) {
+        } catch (InvalidFormatException e) {
 
             throw new RuntimeException(e);
         }
@@ -88,12 +110,14 @@ public class Excel {
                 }
                 i++;
             }
+            priceList.setNumberOfItems(Long.valueOf(i));
 
             for (Map.Entry<Integer, List<String>> entry : data.entrySet()) {
                 //vendorName
 //                System.out.println(entry.getValue());
 //                String vendorName = fileLocation.split(".")[0];
-                String vendorName = "Legrand";
+                String vendorName = multipartFile.getOriginalFilename().split("\\.")[0];
+
                 String referenceNumber = entry.getValue().get(6); //Legrand - referenceNumber
                 String description = "no description";
                 if (!entry.getValue().get(7).isEmpty() && !entry.getValue().get(7).isBlank()) {
@@ -101,13 +125,11 @@ public class Excel {
                 }
                 String brand = entry.getValue().get(5); //Legrand - brand
                 String comment = "no comment";//comment
-                BigInteger unitNetPrice = BigInteger.valueOf(1l);
-                String point = entry.getValue().get(9).trim().replaceAll("[0-9]", "");
+                BigDecimal unitNetPrice = BigDecimal.valueOf(1l);
 
                 try {
-                    unitNetPrice = BigInteger.valueOf(Long.valueOf(entry.getValue().get(9).trim())); //Legrand - unitNetPrice
-                }catch (Exception e)
-                {
+                    unitNetPrice = BigDecimal.valueOf(Long.valueOf(entry.getValue().get(9).trim())); //Legrand - unitNetPrice
+                } catch (Exception e) {
 //                    unitNetPrice = BigInteger.valueOf(Long.parseLong(entry.getValue().get(9).substring(0,entry.getValue().get(9).indexOf(point)))); //Legrand - unitNetPrice
 //                    System.out.println(entry.getValue().get(6));
 //                    System.out.println(entry.getValue().get(9));
@@ -117,9 +139,11 @@ public class Excel {
                 int baseVatRate = 23;
                 if (!entry.getValue().get(14).isEmpty() && !entry.getValue().get(14).isBlank()) {
                     try {
-                        baseVatRate = Integer.parseInt(entry.getValue().get(14)); //Legrand - baseVatRate
+                        baseVatRate = Integer.parseInt(entry.getValue().get(14).split("\\.")[0]);
+
+//                        baseVatRate = Integer.parseInt(entry.getValue().get(14)); //Legrand - baseVatRate
                     } catch (NumberFormatException e) {
-//                    System.out.println(entry.getValue().get(14).replaceAll("[0-9]",""));
+
 //                    System.out.println(Arrays.toString(entry.getValue().get(14).split(entry.getValue().get(14).replaceAll("[0-9]",""))));
 //                    baseVatRate = Integer.valueOf(entry.getValue().get(14).split(entry.getValue().get(14).replaceAll("[0-9]",""))[0]);
 
@@ -140,6 +164,7 @@ public class Excel {
 //                                                2
 //                                        )
 //                        );
+                        e.printStackTrace();
 
                     } catch (Exception e) {
 
@@ -152,10 +177,13 @@ public class Excel {
                 //addedOn
                 PriceListItem priceListItem = new PriceListItem(vendorName, referenceNumber, description, brand, comment, unitNetPrice, unit, baseVatRate);
                 priceListItems.add(priceListItem);
-                System.out.println(priceListItem);
+//                System.out.println(priceListItem);
 
             }
         }
-        return priceListItems;
+        priceList.setPriceListItems(priceListItems);
+        priceList.setName(priceListName);
+
+        return priceList;
     }
 }

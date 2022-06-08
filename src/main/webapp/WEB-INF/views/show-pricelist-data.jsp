@@ -8,11 +8,18 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<html>
-<head>
-    <title>Price list data</title>
-</head>
-<body>
+<%--<html>--%>
+<%--<head>--%>
+<%--    <title>Price list data</title>--%>
+<%--</head>--%>
+<%--<body>--%>
+<%@ include file="/WEB-INF/jspf/user-header.jspf" %>
+
+
+<p>Price list name: ${priceListName}</p>
+<p>Number of items: ${itemsCount}</p>
+<p>Content type: ${contentType}</p>
+
 
 <table border="1px">
     <thead>

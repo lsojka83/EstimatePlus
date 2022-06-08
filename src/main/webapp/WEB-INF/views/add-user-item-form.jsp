@@ -1,10 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<html>
-<head>
-    <title>Add user pricelist item</title>
-</head>
-<body>
+<%--<html>--%>
+<%--<head>--%>
+<%--    <title>Add user pricelist item</title>--%>
+<%--</head>--%>
+<%--<body>--%>
+<%@ include file="/WEB-INF/jspf/user-header.jspf" %>
+
 
 <form:form method="post" modelAttribute="newUserPriceListItem">
   <div>

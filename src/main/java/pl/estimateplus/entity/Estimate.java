@@ -4,8 +4,10 @@ import pl.estimateplus.converter.LocalDateTimeAttributeConverter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,19 +16,24 @@ public class Estimate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank
     private String name;
     private Long numberOfItems;
-    private BigInteger totalNetAmount;
-    private BigInteger totalVatAmount;
-    private BigInteger totalGrossAmount;
+    private BigDecimal totalNetAmount;
+    private BigDecimal totalVatAmount;
+    private BigDecimal totalGrossAmount;
     @Convert(converter = LocalDateTimeAttributeConverter.class)
     private LocalDateTime createdOn;
-    @OneToMany
-    List<EstimateItem> estimateItems;
+    @OneToMany(fetch = FetchType.EAGER)
+    List<EstimateItem> estimateItems = new ArrayList<>();
 
     public Estimate() {
     }
+
+    @PrePersist
+    public void prePersist() {
+        createdOn = LocalDateTime.now();
+    }
+
 
     public Long getId() {
         return id;
@@ -52,27 +59,27 @@ public class Estimate {
         this.numberOfItems = numberOfItems;
     }
 
-    public BigInteger getTotalNetAmount() {
+    public BigDecimal getTotalNetAmount() {
         return totalNetAmount;
     }
 
-    public void setTotalNetAmount(BigInteger totalNetAmount) {
+    public void setTotalNetAmount(BigDecimal totalNetAmount) {
         this.totalNetAmount = totalNetAmount;
     }
 
-    public BigInteger getTotalVatAmount() {
+    public BigDecimal getTotalVatAmount() {
         return totalVatAmount;
     }
 
-    public void setTotalVatAmount(BigInteger totalVatAmount) {
+    public void setTotalVatAmount(BigDecimal totalVatAmount) {
         this.totalVatAmount = totalVatAmount;
     }
 
-    public BigInteger getTotalGrossAmount() {
+    public BigDecimal getTotalGrossAmount() {
         return totalGrossAmount;
     }
 
-    public void setTotalGrossAmount(BigInteger totalGrossAmount) {
+    public void setTotalGrossAmount(BigDecimal totalGrossAmount) {
         this.totalGrossAmount = totalGrossAmount;
     }
 

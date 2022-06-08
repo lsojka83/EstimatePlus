@@ -8,6 +8,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleContextResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
@@ -45,6 +47,18 @@ public class AppConfig implements WebMvcConfigurer{
     public Validator validator() {
         return new LocalValidatorFactoryBean();
     }
+
+    @Bean(name = "multipartResolver")
+    public CommonsMultipartResolver multipartResolver() {
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        multipartResolver.setMaxUploadSize(10000000);
+        return multipartResolver;
+    }
+//
+//    @Bean
+//    public StandardServletMultipartResolver multipartResolver() {
+//        return new StandardServletMultipartResolver();
+//    }
 
 
 

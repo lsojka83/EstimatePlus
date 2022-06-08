@@ -3,6 +3,7 @@ package pl.estimateplus.entity;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,8 +19,8 @@ public class User {
     @NotBlank
     private String password;
     private boolean admin;
-//    @OneToMany
-//    List<Estimate> estimates;
+    @OneToMany
+    List<Estimate> estimates = new ArrayList<>();
     @ManyToOne
     private PriceList userPriceList;
 
@@ -72,6 +73,14 @@ public class User {
 
     public void setUserPriceList(PriceList userPriceList) {
         this.userPriceList = userPriceList;
+    }
+
+    public List<Estimate> getEstimates() {
+        return estimates;
+    }
+
+    public void setEstimates(List<Estimate> estimates) {
+        this.estimates = estimates;
     }
 
     @Override
