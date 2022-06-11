@@ -1,16 +1,25 @@
-
+<%--
+  Created by IntelliJ IDEA.
+  User: Lukasz
+  Date: 04.06.2022
+  Time: 11:33
+  To change this template use File | Settings | File Templates.
+--%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%@ include file="/WEB-INF/jspf/user-header.jspf" %>
+<%--<html>--%>
+<%--<head>--%>
+<%--    <title>Price list data</title>--%>
+<%--</head>--%>
+<%--<body>--%>
+<%@ include file="/WEB-INF/jspf/admin-header.jspf" %>
 
 
-<p>
-    <span>Name: ${userPriceList.name}</span>
-</p>
-<p>
-    <span>Number of items: ${userPriceList.numberOfItems}</span>
-</p>
+<p>Price list name: ${priceListName}</p>
+<p>Number of items: ${itemsCount}</p>
+<p>Content type: ${contentType}</p>
+
 
 <table border="1px">
     <thead>
@@ -25,11 +34,10 @@
         <th>unit</th>
         <th>baseVatRate</th>
         <th>addedOn</th>
-        <th>Actions</th>
     </tr>
     </thead>
     <tbody>
-    <c:forEach var="priceListItem" items="${userPriceList.priceListItems}">
+    <c:forEach var="priceListItem" items="${priceListItems}">
         <tr>
             <td>${priceListItem.id}</td>
             <td>${priceListItem.vendorName}</td>
@@ -41,10 +49,6 @@
             <td>${priceListItem.unit}</td>
             <td>${priceListItem.baseVatRate}</td>
             <td>${priceListItem.addedOn}</td>
-            <td>
-                <a href="/user/edititem?id=${priceListItem.id}">Edit</a>
-                <a href="/user/deleteitem?id=${priceListItem.id}">Delete</a>
-            </td>
         </tr>
     </c:forEach>
     </tbody>

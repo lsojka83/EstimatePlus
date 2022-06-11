@@ -2,29 +2,35 @@ package pl.estimateplus.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pl.estimateplus.entity.PriceList;
 import pl.estimateplus.entity.PriceListItem;
+import pl.estimateplus.entity.User;
 import pl.estimateplus.model.Excel;
 import pl.estimateplus.repository.PriceListItemRepository;
 import pl.estimateplus.repository.PriceListRepository;
+import pl.estimateplus.repository.UserRepository;
 
-import java.io.IOException;
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
 @Controller
+@SessionAttributes("user")
 @RequestMapping("/admin")
 public class AdminController {
 
     private final PriceListRepository priceListRepository;
     private final PriceListItemRepository priceListItemRepository;
+    private final UserRepository userRepository;
 
-    public AdminController(PriceListRepository priceListRepository, PriceListItemRepository priceListItemRepository) {
+    public AdminController(PriceListRepository priceListRepository, PriceListItemRepository priceListItemRepository, UserRepository userRepository) {
         this.priceListRepository = priceListRepository;
         this.priceListItemRepository = priceListItemRepository;
+        this.userRepository = userRepository;
     }
 
 
@@ -38,16 +44,22 @@ public class AdminController {
 //        return "";
 //    }
 
+    @GetMapping("")
+    public String dashboard(Model model)
+    {
+        model.addAttribute("userCount", userRepository.count());
+        return "admin-dashboard";
+    }
+
     @GetMapping("/list")
     public String list() {
 
-        return "show-pricelist-data";
+        return "admin-show-pricelist-data";
     }
 
     @GetMapping("/uploadfile")
     public String uploadFile(Model model) {
-//        model.addAttribute("command",)
-        return "file-upload-form";
+        return "asmin-file-upload-form";
     }
 
 
@@ -67,12 +79,35 @@ public class AdminController {
                 model.addAttribute("contentType", file.getContentType());
                 priceListItemRepository.saveAll(priceListItems);
                 priceListRepository.save(priceList);
-                return "show-pricelist-data";
+                return "admin-show-pricelist-data";
             }
         }
         model.addAttribute("file", file);
         return "file-upload-view";
     }
+
+    @GetMapping("/edit")
+    public String editAdmin(HttpSession httpSession,
+                           Model model
+    ) {
+        model.addAttribute("user", httpSession.getAttribute("user"));
+        return "admin-edit-account";
+    }
+
+    @PostMapping("/edit")
+    public String editAdmin(
+            @Valid User user,
+            BindingResult results,
+            Model model
+    ) {
+        if (results.hasErrors()) {
+            return "admin-edit-account";
+        }
+        userRepository.save(user);
+        model.addAttribute("userCount", userRepository.count());
+        return "admin-dashboard";
+    }
+
 
     @ModelAttribute("priceListItems")
     public List<PriceListItem> findAllPriceListItems() {

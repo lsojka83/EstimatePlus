@@ -9,18 +9,10 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
-
-<%--<html>--%>
-<%--<head>--%>
-<%--    <title>Estimate form</title>--%>
-<%--</head>--%>
-<%--<body>--%>
 <%@ include file="/WEB-INF/jspf/user-header.jspf" %>
-
-<%--<label for="estimateName">Estimane name:</label>--%>
-<%--    <input id="estimateName" value="${estimate.name}" type="text">--%>
+<span>estimateId=${estimate.id}</span>
 <p>
-    <form:form method="post" modelAttribute="estimate">
+    <form:form method="post" modelAttribute="estimate" action="/user/estimateform">
 <div>
     <label for="name">Name</label>
     <form:input path="name" type="text" ></form:input>
@@ -54,10 +46,13 @@
             <td>${estimateItem.priceListItem.comment}</td>
             <td>${estimateItem.priceListItem.unitNetPrice}</td>
             <td>${estimateItem.priceListItem.unit}</td>
-            <td>${estimateItem.priceListItem.baseVatRate}</td>
+            <td>${estimateItem.individualVatRate}</td>
             <td>${estimateItem.quantity}</td>
 <%--            <td>${estimateItem.price}</td>--%>
-            <td> <a href="/estimate/edit?id=${estimateItem.id}">Edit</a></td>
+            <td>
+                <a href="/user/estimateitemedit?id=${estimateItem.id}&estimateId=${estimate.id}">Edit</a>
+                <a href="/user/estimateitemdelete?id=${estimateItem.id}&estimateId=${estimate.id}">Delete</a>
+            </td>
         </tr>
     </c:forEach>
     </tbody>
@@ -74,7 +69,8 @@
 
 
 <div>
-    <form:button name="button" value="save">Save to DB</form:button>
+    <form:button name="button" value="save">Save estimate to DB</form:button>
+    <form:button name="button" value="delete">Delete estimate from DB</form:button>
 </div>
 </form:form>
 </p>

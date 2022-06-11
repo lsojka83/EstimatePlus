@@ -5,12 +5,10 @@
 <%@ include file="/WEB-INF/jspf/user-header.jspf" %>
 
 
-<p>
-    <span>Name: ${userPriceList.name}</span>
-</p>
-<p>
-    <span>Number of items: ${userPriceList.numberOfItems}</span>
-</p>
+<p>Price list name: ${priceListName}</p>
+<p>Number of items: ${itemsCount}</p>
+<p>Content type: ${contentType}</p>
+
 
 <table border="1px">
     <thead>
@@ -29,7 +27,7 @@
     </tr>
     </thead>
     <tbody>
-    <c:forEach var="priceListItem" items="${userPriceList.priceListItems}">
+    <c:forEach var="priceListItem" items="${priceListItems}">
         <tr>
             <td>${priceListItem.id}</td>
             <td>${priceListItem.vendorName}</td>
@@ -42,8 +40,8 @@
             <td>${priceListItem.baseVatRate}</td>
             <td>${priceListItem.addedOn}</td>
             <td>
-                <a href="/user/edititem?id=${priceListItem.id}">Edit</a>
-                <a href="/user/deleteitem?id=${priceListItem.id}">Delete</a>
+                <a href="/user/add"
+
             </td>
         </tr>
     </c:forEach>

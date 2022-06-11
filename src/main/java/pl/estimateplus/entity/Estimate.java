@@ -34,6 +34,29 @@ public class Estimate {
         createdOn = LocalDateTime.now();
     }
 
+    public void calculateAmounts() {
+        if (this.estimateItems != null && this.estimateItems.size() > 0) {
+            //Total net amount
+            this.totalNetAmount = this.estimateItems.stream()
+                    .map(ei -> ei.getTotalNetPrice())
+                    .reduce(BigDecimal::add).get();
+            //Total VAT amount
+            this.totalVatAmount = this.estimateItems.stream()
+                    .map(ei -> (ei.getTotalNetPrice().multiply(BigDecimal.valueOf(ei.getIndividualVatRate())).divide(BigDecimal.valueOf(100))))
+                    .reduce(BigDecimal::add).get();
+            //TotalGrossAmount
+            this.totalGrossAmount = totalNetAmount.add(totalVatAmount);
+        }
+        else {
+            this.totalGrossAmount = BigDecimal.valueOf(0);
+            this.totalNetAmount = BigDecimal.valueOf(0);
+            this.totalVatAmount = BigDecimal.valueOf(0);
+            this.numberOfItems = 0l;
+        }
+
+
+    }
+
 
     public Long getId() {
         return id;

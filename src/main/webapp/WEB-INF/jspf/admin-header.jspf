@@ -4,7 +4,8 @@
 <html lang="pl">
 
 <head>
-        <title>User Panel</title>
+        <title>Admin Panel</title>
+
 </head>
 
 <body>
@@ -13,27 +14,24 @@
     <tr>
         <td>
             <p>
-                <a href="/user/">Dashboard</a>
+                <a href="/admin/">Dashboard</a>
+            </p>
+        </td>
+
+        <td>
+            <p>
+                <a href="/admin/uploadfile">Add/update price list</a>
+            </p>
+        </td>
+
+        <td>
+            <p>
+                <a href="/admin/list">View/edit pricelist </a>
             </p>
         </td>
         <td>
             <p>
-                <a href="/user/estimate">Add/edit estimate</a>
-            </p>
-        </td>
-        <td>
-            <p>
-                <a href="/user/additem">Add/edit user price list</a>
-            </p>
-        </td>
-        <td>
-            <p>
-                <a href="/user/showuserpricelist">Show user price list</a>
-            </p>
-        </td>
-        <td>
-            <p>
-                <a href="/user/edit">Edit account</a>
+                <a href="/admin/edit">Edit account</a>
             </p>
         </td>
         <td>
@@ -42,10 +40,11 @@
             </p>
         </td>
     </tr>
+
     <tr>
         <td>
             <p>
-               User name: ${user.userName}
+                User name: ${user.userName}
             </p>
         </td>
         <td>
@@ -55,12 +54,13 @@
         </td>
         <td>
             <p>
-                User's pricelist Id: ${user.userPriceList.id}
+                Is an admin: ${user.admin}
             </p>
         </td>
 
 
     </tr>
+
     </tbody>
 </table>
 

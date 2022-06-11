@@ -1,8 +1,11 @@
 package pl.estimateplus.entity;
 
+import org.springframework.web.bind.annotation.ModelAttribute;
 import pl.estimateplus.converter.LocalDateTimeAttributeConverter;
 
 import javax.persistence.*;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -23,9 +26,11 @@ public class PriceListItem {
     @NotBlank
     private String brand;
     private String comment;
+    @DecimalMin("0")
     private BigDecimal unitNetPrice;
     @NotBlank
     private String unit;
+    @Min(0)
     private Integer baseVatRate;
     @Convert(converter = LocalDateTimeAttributeConverter.class)
     private LocalDateTime addedOn = null;

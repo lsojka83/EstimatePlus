@@ -9,9 +9,6 @@ import org.springframework.web.servlet.DispatcherServlet;
 import javax.servlet.*;
 
 public class AppInitializer implements WebApplicationInitializer {
-//
-//    private String TMP_FOLDER = "/tmp";
-//    private int MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
 
     public void onStartup(ServletContext container) throws ServletException {
         AnnotationConfigWebApplicationContext ctx =
@@ -28,16 +25,5 @@ public class AppInitializer implements WebApplicationInitializer {
         fr.setInitParameter("encoding", "UTF-8");
         fr.setInitParameter("forceEncoding", "true");
         fr.addMappingForUrlPatterns(null, true, "/*");
-
-        //MultipartConfigElement
-//        ServletRegistration.Dynamic appServlet = container.addServlet("mvc", new DispatcherServlet(
-//                new GenericWebApplicationContext()));
-//
-//        appServlet.setLoadOnStartup(1);
-//
-//        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(TMP_FOLDER,
-//                MAX_UPLOAD_SIZE, MAX_UPLOAD_SIZE * 2, MAX_UPLOAD_SIZE / 2);
-//
-//        appServlet.setMultipartConfig(multipartConfigElement);
     }
 }

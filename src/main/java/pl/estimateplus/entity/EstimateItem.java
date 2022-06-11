@@ -1,6 +1,7 @@
 package pl.estimateplus.entity;
 
 import javax.persistence.*;
+import javax.validation.constraints.Min;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
@@ -11,9 +12,11 @@ public class EstimateItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Min(0)
     private int individualVatRate;
 //    private BigInteger vatAmount;
     private BigDecimal totalNetPrice;
+    @Min(1)
     private int quantity;
     @OneToOne
     private PriceListItem priceListItem;
@@ -70,4 +73,14 @@ public class EstimateItem {
         this.priceListItem = priceListItem;
     }
 
+    @Override
+    public String toString() {
+        return "EstimateItem{" +
+                "id=" + id +
+                ", individualVatRate=" + individualVatRate +
+                ", totalNetPrice=" + totalNetPrice +
+                ", quantity=" + quantity +
+                ", priceListItem=" + priceListItem +
+                '}';
+    }
 }
