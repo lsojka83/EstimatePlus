@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: Lukasz
-  Date: 06.06.2022
-  Time: 17:42
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
@@ -50,8 +43,8 @@
             <td>${estimateItem.quantity}</td>
 <%--            <td>${estimateItem.price}</td>--%>
             <td>
-                <a href="/user/estimateitemedit?id=${estimateItem.id}&estimateId=${estimate.id}">Edit</a>
-                <a href="/user/estimateitemdelete?id=${estimateItem.id}&estimateId=${estimate.id}">Delete</a>
+                <a href="/user/editestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}&refNo=${estimateItem.priceListItem.referenceNumber}&estimateId=${estimate.id}">Edit</a>
+                <a href="/user/deleteestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}&refNo=${estimateItem.priceListItem.referenceNumber}&estimateId=${estimate.id}">Delete</a>
             </td>
         </tr>
     </c:forEach>
@@ -67,7 +60,7 @@
         <input name="estimateId" value="${estimate.id}" hidden>
 <%--        <form:hidden path="id" name="estimateId"  value="${estimate.id}"/>--%>
 
-
+<br>
 <div>
     <form:button name="button" value="save">Save estimate to DB</form:button>
     <form:button name="button" value="delete">Delete estimate from DB</form:button>
@@ -83,18 +76,19 @@
 <p>
 <h4>Find item by reference number:</h4>
 <form method="post" action="/user/estimateform">
-    <input value="" name="searchedItem" type="text"/>
+    <input value="" name="searchedItemReferenceNumber" type="text"/>
     <input name="estimateId" value="${estimate.id}" hidden>
-
     <button name="button" value="findPriceListItem" type="submit">Search</button>
 </form>
 </p>
 
 <p>
+<form method="post" action="/user/estimateform" name="post">
 <p>
 <table border="1px">
     <thead>
     <tr>
+        <th>Select one:</th>
         <th>Id</th>
         <th>Reference Number</th>
         <th>Description</th>
@@ -106,7 +100,19 @@
     </tr>
     </thead>
     <tbody>
+    <c:forEach items="${searchResult}" var="priceListItem" varStatus="loopStatus">
     <tr>
+        <td>
+            <c:choose>
+                <c:when test="${loopStatus.isFirst()}">
+<%--                    <input type="radio" name="priceListItemId" value="${priceListItem.id}" checked>--%>
+                    <input type="radio" name="priceListItemId" value="${priceListItem.id}" checked></input>
+                </c:when>
+                <c:otherwise>
+                    <input type="radio" name="priceListItemId" value="${priceListItem.id}"></input>
+                </c:otherwise>
+            </c:choose>
+        </td>
         <td>${priceListItem.id}</td>
         <td>${priceListItem.referenceNumber}</td>
         <td>${priceListItem.description}</td>
@@ -116,10 +122,13 @@
         <td>${priceListItem.unit}</td>
         <td>${priceListItem.baseVatRate}</td>
     </tr>
+    </c:forEach>
     </tbody>
 </table>
-<form method="post" action="/user/estimateform" name="post">
-    <input value="${priceListItem.id}" name="priceListItemId" type="text" hidden/>
+
+<%--    <input value="${priceListItem.id}" name="priceListItemId" type="text" hidden/>--%>
+<%--    <input value="${priceListItem.id}" name="priceListItemId" type="text"/>--%>
+<%--    <input value="selection" name="priceListItemId" type="text" hidden/>--%>
     <input name="estimateId" value="${estimate.id}" hidden>
     <button name="button" value="addEstimateItem" type="submit">Add item</button>
 </form>

@@ -19,6 +19,11 @@ public class PriceList {
     public PriceList() {
     }
 
+    public void countItems()
+    {
+        this.numberOfItems = Long.valueOf(this.priceListItems.size());
+    }
+
     public Long getId() {
         return id;
     }

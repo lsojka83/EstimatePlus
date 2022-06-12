@@ -19,6 +19,7 @@ public class User {
     @NotBlank
     private String password;
     private boolean admin;
+//    @OneToMany (fetch = FetchType.EAGER)
     @OneToMany
     List<Estimate> estimates = new ArrayList<>();
     @ManyToOne

@@ -46,6 +46,8 @@ public class Estimate {
                     .reduce(BigDecimal::add).get();
             //TotalGrossAmount
             this.totalGrossAmount = totalNetAmount.add(totalVatAmount);
+
+            this.numberOfItems = Long.valueOf(this.estimateItems.size());
         }
         else {
             this.totalGrossAmount = BigDecimal.valueOf(0);

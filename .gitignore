@@ -3,6 +3,8 @@
 *.iml
 *.xlsx
 *.xlsx
+*.txt
+
 /resources/*.xlsx
 
 # Compiled class file

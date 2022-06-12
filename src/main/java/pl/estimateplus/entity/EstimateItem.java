@@ -24,6 +24,11 @@ public class EstimateItem {
     public EstimateItem() {
     }
 
+    public void calculateAmounts(int quantity)
+    {
+        this.totalNetPrice = this.priceListItem.getUnitNetPrice().multiply(BigDecimal.valueOf(quantity));
+    }
+
     public Long getId() {
         return id;
     }

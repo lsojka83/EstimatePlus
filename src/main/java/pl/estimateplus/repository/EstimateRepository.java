@@ -2,6 +2,7 @@ package pl.estimateplus.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import pl.estimateplus.entity.Estimate;
 import pl.estimateplus.entity.User;
 
@@ -15,5 +16,13 @@ public interface EstimateRepository extends JpaRepository<Estimate, Long> {
     Estimate findByName(String estimateName);
 
 //    Estimate findByUserIdAndEstimateName(Long userId, String estimateName);
+
+//        @Query("SELECT e FROM Estimate e LEFT JOIN FETCH e.name")
+//    Estimate findByUserIdAndEstimateName(Long userId, String estimateName);
+
+
+
+
+
 
 }

@@ -1,5 +1,7 @@
 package pl.estimateplus.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -13,6 +15,7 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +25,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/user")
 public class UserController {
 
-//    String userName;
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+
 
     private final PriceListRepository priceListRepository;
     private final PriceListItemRepository priceListItemRepository;
@@ -47,8 +52,8 @@ public class UserController {
 
 
     @GetMapping("")
-    public String dashboard(Model model,
-                            HttpSession httpSession) {
+    public String showDashboard(Model model,
+                                HttpSession httpSession) {
         if (httpSession.getAttribute("user") == null) {
         }
 
@@ -90,17 +95,10 @@ public class UserController {
     public String estimate(
             Model model,
             HttpSession httpSession
-//            ,
-//            HttpServletRequest request
     ) {
-//        model.addAttribute("user",userRepository.findByUserName(userName));
-//        model.addAttribute("estimates", userRepository.findByUserName(userName).getEstimates());
-//        request.getSession().setAttribute("estimate", new Estimate());
-//        User user = (User) model.getAttribute("user");
-//        System.out.println("!!!"+(User) httpSession.getAttribute("user"));
+
         User user = (User) httpSession.getAttribute("user");
         user = userRepository.findByIdWithEstimates(user.getId());
-//        model.addAttribute("user", user);
         List<String> estimatesNames = user.getEstimates().stream().map(e -> e.getName()).collect(Collectors.toList());
         model.addAttribute("estimatesNames", estimatesNames);
 
@@ -110,42 +108,29 @@ public class UserController {
     @PostMapping("/estimate")
     public String estimatePost(
             Model model
-            , HttpServletRequest request
             , @RequestParam String button
-            , @RequestParam(required = false) String selectedEstimate,
-            HttpSession httpSession
+            , @RequestParam(required = false) String selectedEstimate
 
     ) {
 
         if (button != null && button.equals("Create new")) {
-//            model.addAttribute("estimate", new Estimate());
             model.addAttribute("estimate", new Estimate());
-//            System.out.println("!!! Create new");
         }
         if (button != null && button.equals("Edit")) {
 
-//            request.getSession().setAttribute("estimate", estimateRepository.findByName(selectedEstimate));
             if (selectedEstimate != null) {
                 model.addAttribute("estimate", estimateRepository.findByName(selectedEstimate));
             } else {
                 model.addAttribute("estimate", new Estimate());
             }
-//            httpSession.setAttribute("estimate",estimateRepository.findByName(selectedEstimate));
-
-//            System.out.println("!!! Edit");
         }
-
-//        return "forward:/user/estimateform";
         return "estimate-form";
     }
 
     @GetMapping("/estimateform")
     public String showEstimateForm1(Model model,
-                                    HttpSession httpSession,
                                     @RequestParam(required = false) Long estimateId
     ) {
-
-//        model.addAttribute("estimate",(Estimate) httpSession.getAttribute("estimate"));
         model.addAttribute("estimate", estimateRepository.findById(estimateId).get());
 
         return "estimate-form";
@@ -154,50 +139,59 @@ public class UserController {
     @PostMapping("/estimateform")
     public String showEstimateForm(Model model,
                                    @RequestParam(required = false) String button,
-                                   @RequestParam(required = false) String searchedItem,
+                                   @RequestParam(required = false) String searchedItemReferenceNumber,
                                    @RequestParam(required = false) String priceListItemId,
-                                   HttpServletRequest request,
                                    HttpSession httpSession,
 //                                   @Valid @ModelAttribute("estimate")Estimate estimate,
                                    @Valid Estimate estimate,
                                    BindingResult result,
-//                                   @ModelAttribute User user,
                                    @RequestParam(required = false) Long estimateId
 
     ) {
+
         User user = (User) httpSession.getAttribute("user");
-//        Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
-//        estimate = (Estimate) httpSession.getAttribute("estimate");
+        if(estimate!=null)
+        {
+            estimate.calculateAmounts();
+        }
+
+
+//        logger.info("this is a info message");
+//        logger.warn("this is a warn message");
+//        logger.error("this is a error message");
+
 //        System.out.println("!!!!" + estimate.getId());
-
-
 //        System.out.println("!!!!estimateIdModel1" + request.getAttribute("estimateIdModel1"));
 //        System.out.println("!!!!estimateId" + request.getAttribute("estimateId"));
 //        System.out.println("!!!!estimateId" + estimateId);
 //        System.out.println("!!!!estimate" + model.getAttribute("estimate"));
-//        System.out.println("!!!!estimate" + estimate);
 //        System.out.println("!!!!searchedItem" + request.getAttribute("searchedItem"));
 //        System.out.println("!!!!button"+ request.getAttribute("button"));
 
-
-        //SAVE
+        //Save estimate
+        System.out.println("!!!!estimate" + estimate);
         if (button != null && button.equals("save")) {
-            if (result.hasErrors()) {
-                return "estimate-form";
-            }
+//            if (result.hasErrors()) {
+//                return "estimate-form";
+//            }
 //            estimate.setName();
+            //???
             estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
             estimate.setEstimateItems(estimate.getEstimateItems());
-            estimate.setNumberOfItems(Long.valueOf(estimate.getEstimateItems().size()));
-//            user = (User) model.getAttribute("user");
-//            user = userRepository.findByUserName(userName);
-//            System.out.println(estimate.getEstimateItems().size());
+            //???
+//            estimate.setNumberOfItems(Long.valueOf(estimate.getEstimateItems().size()));
+            if(estimate.getEstimateItems().stream().toList().stream().filter(ei->ei.getId()==null).count()>0) {
+                List<EstimateItem> newItems = estimate.getEstimateItems().stream().toList().stream().filter(ei -> ei.getId() == null).collect(Collectors.toList());
+                estimate.getEstimateItems().addAll(newItems);
+                estimate.setEstimateItems(estimate.getEstimateItems());
+
+            }
             estimate.calculateAmounts();
-//            System.out.println(user);
             estimateRepository.save(estimate);
             user = userRepository.findByIdWithEstimates(user.getId());
+//            user = (User) httpSession.getAttribute("user");
             if (user.getEstimates().stream()
-                    .filter(e -> e.getId() == estimate.getId())
+                    .filter(e -> e.getId().equals(estimate.getId()))
                     .collect(Collectors.toList())
                     .size() == 0) {
 
@@ -205,53 +199,72 @@ public class UserController {
                 userRepository.save(user);
             }
         }
-        //SAVE
 
 
-        //DELETDELETE
+        //Delete estimate
         if (button != null && button.equals("delete")) {
             user = (User) httpSession.getAttribute("user");
-//            user = userRepository.findById(user.getId());
+            user = userRepository.findByIdWithEstimates(user.getId());
             user.getEstimates().removeIf(e -> e.getId() == estimate.getId());
             userRepository.save(user);
             estimateRepository.delete(estimate);
             model.addAttribute("estimate", new Estimate());
+            return "estimate-form";
         }
-        //DELETE
 
 
-        //FIND
+
+        //Find price list item on user pricelist and all general pricelists
+
         if (button != null && button.equals("findPriceListItem")) {
-
-            if (priceListItemRepository.findByReferenceNumber(searchedItem).isPresent()) {
-                model.addAttribute("priceListItem", priceListItemRepository.findByReferenceNumber(searchedItem).get());
+            if (!priceListItemRepository.findAllByUserIdAndReferenceNumber(user.getId(), searchedItemReferenceNumber).isEmpty()) {
+                model.addAttribute("searchResult",
+                        priceListItemRepository.findAllByUserIdAndReferenceNumber(user.getId(), searchedItemReferenceNumber));
             }
+
+//            if (priceListItemRepository.findByUserIdAndReferenceNumber(user.getId(), searchedItem).isPresent()) {
+//                model.addAttribute("priceListItem",
+//                        priceListItemRepository.findByUserIdAndReferenceNumber(user.getId(), searchedItem).get());
+//            }
         }
-        //FIND
 
-
-        //ADD
+        //Add pricelist item as estimate item do estimate. Not saves estimate do DB
         if (button != null && button.equals("addEstimateItem")) {
+            logger.info("priceListItemId: "+priceListItemId);
             if (priceListItemId != null && !priceListItemId.isEmpty()) {
-//                System.out.println("!!!!" + priceListItemId);
-//                System.out.println("!!!!" + priceListItemId.getClass());
                 PriceListItem priceListItem = priceListItemRepository.findById(Long.parseLong(priceListItemId)).get();
                 EstimateItem estimateItem = null;
+//                if (estimate.getEstimateItems().stream()
+//                        .map(e -> e.getPriceListItem()
+//                                .getReferenceNumber())
+//                        .collect(Collectors.toList())
+//                        .contains(priceListItem.getReferenceNumber())) {
+//                List<EstimateItem> estimateItems = estimate.getEstimateItems();
+//
+////                    System.out.println(estimateItems);
+//                for (EstimateItem e : estimateItems) {
+//                    if (e.getPriceListItem().getReferenceNumber().equals(priceListItem.getReferenceNumber())) {
+//                        e.setQuantity(e.getQuantity() + 1);
+//                        e.setTotalNetPrice(e.getPriceListItem()
+//                                .getUnitNetPrice().multiply(BigDecimal.valueOf(e.getQuantity())));
+//                        estimateItems.set(estimateItems.indexOf(e), e);
+//
+//                    }
+//                }
+//                estimate.setEstimateItems(estimateItems);
+//            }
                 if (estimate.getEstimateItems().stream()
                         .map(e -> e.getPriceListItem()
-                                .getReferenceNumber())
+                                .getId())
                         .collect(Collectors.toList())
-                        .contains(priceListItem.getReferenceNumber())) {
+                        .contains(priceListItem.getId())) {
                     List<EstimateItem> estimateItems = estimate.getEstimateItems();
-
-//                    System.out.println(estimateItems);
                     for (EstimateItem e : estimateItems) {
-                        if (e.getPriceListItem().getReferenceNumber().equals(priceListItem.getReferenceNumber())) {
+                        if (e.getPriceListItem().getId().equals(priceListItem.getId())) {
                             e.setQuantity(e.getQuantity() + 1);
                             e.setTotalNetPrice(e.getPriceListItem()
                                     .getUnitNetPrice().multiply(BigDecimal.valueOf(e.getQuantity())));
                             estimateItems.set(estimateItems.indexOf(e), e);
-
                         }
                     }
                     estimate.setEstimateItems(estimateItems);
@@ -264,27 +277,9 @@ public class UserController {
                             .getUnitNetPrice().multiply(BigDecimal.valueOf(estimateItem.getQuantity())));
                     estimate.getEstimateItems().add(estimateItem);
                 }
-
                 estimate.calculateAmounts();
-
-//                //Total net amount
-//                BigDecimal totalNetAmount = estimate.getEstimateItems().stream()
-//                        .map(ei -> ei.getTotalNetPrice())
-//                        .reduce(BigDecimal::add).get();
-//                //Total VAT amount
-//                BigDecimal totalVatAmount = estimate.getEstimateItems().stream()
-//                        .map(ei -> (ei.getTotalNetPrice().multiply(BigDecimal.valueOf(ei.getIndividualVatRate())).divide(BigDecimal.valueOf(100))))
-//                        .reduce(BigDecimal::add).get();
-//                //TotalGrossAmount
-//                BigDecimal totalGrossAmount = totalNetAmount.add(totalVatAmount);
-//
-//                estimate.setTotalNetAmount(totalNetAmount);
-//                estimate.setTotalVatAmount(totalVatAmount);
-//                estimate.setTotalGrossAmount(totalGrossAmount);
             }
         }
-        //ADD
-
 
         model.addAttribute("estimate", estimate);
         return "estimate-form";
@@ -318,8 +313,6 @@ public class UserController {
         priceListItem.setVendorName(userName);
         priceListItemRepository.save(priceListItem);
         PriceList userPR = null;
-//        if (priceListRepository.findByName(userName) == null) {
-//        if (priceListRepository.findById(user.getUserPriceList().getId()) == null) {
         if (userRepository.findById(user.getId()).get().getUserPriceList() == null) {
             userPR = new PriceList();
             userPR.setNumberOfItems(0l);
@@ -334,10 +327,7 @@ public class UserController {
             );
         }
         userPR.getPriceListItems().add(priceListItem);
-//        userPR.setNumberOfItems(Long.valueOf(priceListRepository.findByName(userName).getPriceListItems().size()) + 1);
-        userPR.setNumberOfItems(Long.valueOf(priceListRepository.findByIdWithPriceListItems(
-                userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
-        ).getPriceListItems().size()) + 1);
+        userPR.setNumberOfItems(Long.valueOf(userPR.getPriceListItems().size()));
         priceListRepository.save(userPR);
         model.addAttribute("userPriceList", userPR);
         return "user-pricelist";
@@ -349,7 +339,6 @@ public class UserController {
                                HttpSession httpSession,
                                @RequestParam String id
     ) {
-
         model.addAttribute("userPriceListItem", priceListItemRepository.findById(Long.parseLong(id)));
         model.addAttribute("userName", userRepository.findById(((User) httpSession.getAttribute("user")).getId()).get().getUserName());
         return "user-add-item-form";
@@ -360,9 +349,7 @@ public class UserController {
                                        priceListItem, BindingResult result, Model model,
                                HttpSession httpSession
     ) {
-
         User user = (User) httpSession.getAttribute("user");
-        String userName = user.getUserName();
 
         if (result.hasErrors()) {
             System.out.println(result);
@@ -384,130 +371,105 @@ public class UserController {
             Model model,
             HttpSession httpSession,
             @RequestParam String id
-
     ) {
 
         User user = (User) httpSession.getAttribute("user");
-//        PriceList pr = priceListRepository.findByIdWithPriceListItems(user.getUserPriceList().getId());
 
         PriceList userPR = priceListRepository.findByIdWithPriceListItems(
                 userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId());
-//        priceListItemRepository.delete(priceListItemRepository.findById(Long.parseLong(id)).get());
-        userPR.getPriceListItems().removeIf(i->i.getId()==Long.parseLong(id));
-
-        if (priceListRepository.findByIdWithPriceListItems(
-                userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
-        ).getPriceListItems().size() > 0) {
-            userPR.setNumberOfItems(Long.valueOf(priceListRepository.findByIdWithPriceListItems(
-                    userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
-            ).getPriceListItems().size()) - 1);
-        }
+        userPR.getPriceListItems().removeIf(i -> i.getId() == Long.parseLong(id));
+        userPR.countItems();
+//        userPR.setNumberOfItems(Long.valueOf(userPR.getPriceListItems().size()));
 
         priceListRepository.save(userPR);
+
+        if(estimateItemRepository.findByPriceListItemId(Long.parseLong(id))!=null) {
+            Long estimateItemId = estimateItemRepository.findByPriceListItemId(Long.parseLong(id)).getId();
+            estimateItemRepository.deleteFromRelationTableById(estimateItemId);
+            estimateItemRepository.deleteById(estimateItemId);
+        }
+
+        priceListItemRepository.delete(priceListItemRepository.findById(Long.parseLong(id)).get());
+
+        List<Estimate> userEstimates = userRepository.findByIdWithEstimates(user.getId()).getEstimates();
+        for (Estimate ue : userEstimates) {
+            ue.calculateAmounts();
+        }
+        user.setEstimates(userEstimates);
+        userRepository.save(user);
+
         model.addAttribute("userPriceList", userPR);
-//        model.addAttribute("userPriceList", priceListRepository.findByIdWithPriceListItems(
-//                        userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
-//                )
-//        );
+
         return "user-pricelist";
     }
 
-
-    @GetMapping("/estimateitemedit")
-    public String editEstimateItem(@RequestParam String id,
-                                   Model model,
-                                   @RequestParam String estimateId,
-                                   HttpSession httpSession
-//                                   @ModelAttribute Estimate estimate
-//                                   @ModelAttribute Estimate estimate
+    //Edit estimate item
+    @GetMapping("/editestimateitem")
+    public String editEstimateItem(
+            @RequestParam String id,
+            @RequestParam String refNo,
+            @RequestParam String piId,
+            Model model,
+            @RequestParam String estimateId,
+            HttpSession httpSession
     ) {
 
         Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
-//        estimate.setId(Long.parseLong(estimateId));
-//        System.out.println("!!!"+estimateId);
-//        System.out.println("!!!"+estimate.getId());
-//        System.out.println(estimate);
-//        model.addAttribute("estimateItem", estimateItemRepository.findById(Long.parseLong(id)).get());
+        logger.info("!!! " + piId);
+        logger.info("!!! " + estimate);
 
-//        System.out.println("!!!"+estimate.getEstimateItems());
-        if (id != "") {
-            model.addAttribute("estimateItem", estimate.getEstimateItems()
-                    .stream()
-                    .filter(ei -> ei.getId() == Long.parseLong(id))
-                    .collect(Collectors.toList()).get(0));
-        } else {
-            model.addAttribute("estimateItem", estimate.getEstimateItems()
-                    .stream()
-                    .filter(ei -> ei.getId() == null)
-                    .collect(Collectors.toList()).get(0));
-        }
+
+        model.addAttribute("estimateItem", estimate.getEstimateItems()
+                .stream()
+                .filter(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)))
+                .collect(Collectors.toList()).get(0));
 
         model.addAttribute("estimateId", estimateId);
         return "estimateitem-edit";
     }
 
-    @PostMapping("/estimateitemedit")
+    @PostMapping("/editestimateitem")
     public String editEstimateItem(@Valid EstimateItem estimateItem,
                                    BindingResult result,
                                    @RequestParam String priceListItemId,
                                    @RequestParam String estimateId,
                                    Model model,
-//                                   @ModelAttribute Estimate estimate,
                                    HttpSession httpSession
 
     ) {
         Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
-
         PriceListItem priceListItem = priceListItemRepository.findById(Long.parseLong(priceListItemId)).get();
         estimateItem.setPriceListItem(priceListItem);
-        estimateItem.setTotalNetPrice(
-                priceListItem.getUnitNetPrice().multiply(BigDecimal.valueOf(estimateItem.getQuantity())));
+        estimateItem.calculateAmounts(estimateItem.getQuantity());
+//        estimateItem.setTotalNetPrice(
+//                priceListItem.getUnitNetPrice().multiply(BigDecimal.valueOf(estimateItem.getQuantity())));
         if (result.hasErrors()) {
             return "estimateitem-edit";
         }
-//        estimateItemRepository.save(estimateItem);
-//        Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
+//        System.out.println("!!!!" + estimate);
+        int i = 0;
 
-
-        int i = estimate.getEstimateItems().indexOf(estimate.getEstimateItems()
+        i = estimate.getEstimateItems().indexOf(estimate.getEstimateItems()
                 .stream()
-                .filter(ei -> ei.getId() == estimateItem.getId())
+                .filter(ei -> ei.getPriceListItem().getId().equals(estimateItem.getPriceListItem().getId()))
                 .collect(Collectors.toList()).get(0));
-//        int i = estimate.getEstimateItems().indexOf(estimateItem);
-//        System.out.println(estimate.getEstimateItems()
-//                .stream()
-//                .filter(ei->ei.getId()==estimateItem.getId())
-//                .collect(Collectors.toList()).toString());
-
-        estimate.getEstimateItems().removeIf(ei -> ei.getId() == estimateItem.getId());
+        estimate.getEstimateItems().remove(i);
         estimate.getEstimateItems().add(i, estimateItem);
         estimate.calculateAmounts();
-
-//        model.addAttribute("estimate",estimateRepository.findById(Long.parseLong(estimateId)).get());
         model.addAttribute("estimate", estimate);
         return "estimate-form";
-//        return "redirect:/user/estimateform";
-//        return "forward:/user/estimateform";
     }
 
-    @GetMapping("/estimateitemdelete")
+    @GetMapping("/deleteestimateitem")
     public String deleteEstimateItem(@RequestParam String id,
-                                     HttpServletRequest request,
+                                     @RequestParam String refNo,
                                      Model model,
-                                     @RequestParam String estimateId,
                                      HttpSession httpSession
     ) {
         Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
-        if (id != "") {
-            estimate.getEstimateItems().removeIf(ei -> ei.getId() == Long.parseLong(id));
-        } else {
-            estimate.getEstimateItems().removeIf(ei -> ei.getId() == null);
-        }
 
+        estimate.getEstimateItems().removeIf(ei -> ei.getPriceListItem().getReferenceNumber().equals(refNo));
 
-//        estimateItemRepository.deleteFromRelationTableById(id);
-//        estimateItemRepository.deleteById(id);
-//        estimate = estimateRepository.findById(Long.parseLong(estimateId)).get();
         estimate.calculateAmounts();
         model.addAttribute("estimate", estimate);
         return "estimate-form";
@@ -542,48 +504,18 @@ public class UserController {
             priceList = new PriceList();
         }
         model.addAttribute("userPriceList", priceList);
-
-//        model.addAttribute("userPriceList", priceListRepository.findByName(
-//                userRepository.findById(((User) httpSession.getAttribute("user")).getId()).get().getUserName()
-//        ));
         return "user-pricelist";
     }
 
-//    @ModelAttribute("userPriceList")
-//    public PriceList getUserPriceList(String userName) {
-//        return priceListRepository.findByName(userName);
-//    }
-
-//    @ModelAttribute("userName")
-//    public String getUserName()
-//    {
-//        return "mockuser";
-//    }
-
-//    @ModelAttribute("userPriceListItem")
-//    public PriceListItem getNewPriceListItem() {
-//        return new PriceListItem();
-//    }
-//
-//    @ModelAttribute("estimate")
-//    public PriceListItem getNewPriceListItem() {
-//        return new PriceListItem();
-//    }
-
-//        @ModelAttribute("estimates")
-//    public List<Estimate> getUserEstimates() {
-////        return estimateRepository.findAllByUser(userRepository.findByUserName(userName));
-//            return estimateRepository.findAll();
-//    }
 
     //
-    @ModelAttribute("user")
-    public User getUser(
-            HttpSession httpSession
-    ) {
-//        return userRepository.findByUserName(userName);
-        return userRepository.findById(((User) httpSession.getAttribute("user")).getId()).get();
-    }
+//    @ModelAttribute("user")
+//    public User getUser(
+//            HttpSession httpSession
+//    ) {
+////        return userRepository.findByUserName(userName);
+//        return userRepository.findById(((User) httpSession.getAttribute("user")).getId()).get();
+//    }
 
 
 }

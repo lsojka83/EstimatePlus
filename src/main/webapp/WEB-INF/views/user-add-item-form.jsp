@@ -41,9 +41,13 @@
     <form:input path="baseVatRate" id="baseVatRate" type="number"></form:input>
     <form:errors path="baseVatRate"/>
   </div>
+
+  <div>
+    <form:hidden path="addedOn" value="${addedOn}"></form:hidden>
+  </div>
   <form:input path="vendorName" value="${userName}" hidden="true"></form:input>
   <div>
-    <input type="submit">
+    <button type="submit">Save</button>
   </div>
 </form:form>
 

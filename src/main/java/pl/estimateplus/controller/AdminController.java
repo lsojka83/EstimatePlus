@@ -77,6 +77,11 @@ public class AdminController {
                 model.addAttribute("itemsCount", priceList.getNumberOfItems());
                 model.addAttribute("priceListName", priceList.getName());
                 model.addAttribute("contentType", file.getContentType());
+                for(PriceListItem p : priceListItems)
+                {
+
+                }
+
                 priceListItemRepository.saveAll(priceListItems);
                 priceListRepository.save(priceList);
                 return "admin-show-pricelist-data";
