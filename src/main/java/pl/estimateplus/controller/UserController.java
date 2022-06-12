@@ -182,6 +182,8 @@ public class UserController {
             }
             estimate.calculateAmounts();
             logger.info("!!!! " + estimate);
+
+            estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
             try {
                 estimateRepository.save(estimate);
             } catch (Exception e) {
@@ -204,7 +206,18 @@ public class UserController {
             user = userRepository.findByIdWithEstimates(user.getId());
             user.getEstimates().removeIf(e -> e.getId() == estimate.getId());
             userRepository.save(user);
+            logger.info("!!! Delete"+estimate);
+
+            estimate.getEstimateItems().stream().forEach(ei->
+                    {
+                        if(ei.getId()!=null) {
+                            estimateItemRepository.deleteFromRelationTableById(ei.getId());
+                            estimateItemRepository.deleteById(ei.getId());
+                        }
+                    }
+            );
             estimateRepository.delete(estimate);
+
             model.addAttribute("estimate", new Estimate());
             return "estimate-form";
         }
@@ -248,18 +261,17 @@ public class UserController {
                     try {
                         estimateItem.setTotalNetPrice(estimateItem.getPriceListItem()
                                 .getUnitNetPrice().multiply(BigDecimal.valueOf(estimateItem.getQuantity())));
-                    }
-                    catch (Exception e)
-                    {logger.warn(e.getMessage());
+                    } catch (Exception e) {
+                        logger.warn(e.getMessage());
                     }
 
                     estimate.getEstimateItems().add(estimateItem);
                 }
                 try {
                     estimate.calculateAmounts();
+                } catch (Exception e) {
+                    logger.warn(e.getMessage());
                 }
-                catch (Exception e)
-                {logger.warn(e.getMessage());}
             }
         }
 
@@ -362,7 +374,7 @@ public class UserController {
         if (estimateItemRepository.findByPriceListItemId(Long.parseLong(id)) != null) {
             Long estimateItemId = estimateItemRepository.findByPriceListItemId(Long.parseLong(id)).getId();
             estimateItemRepository.deleteFromRelationTableById(estimateItemId);
-            if(estimateItemRepository.findById(estimateItemId).isPresent()) {
+            if (estimateItemRepository.findById(estimateItemId).isPresent()) {
                 estimateItemRepository.deleteById(estimateItemId);
             }
         }
@@ -442,10 +454,13 @@ public class UserController {
             HttpSession httpSession
     ) {
         Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
+        logger.info("!!! " + estimate);
 
-        Long eiId = estimate.getEstimateItems().stream().filter(ei->ei.getPriceListItem().getId().equals(Long.parseLong(piId))).collect(Collectors.toList()).get(0).getId();
-        estimateItemRepository.deleteFromRelationTableById(eiId);
-        estimateItemRepository.deleteById(eiId);
+        Long eiId = estimate.getEstimateItems().stream().filter(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId))).collect(Collectors.toList()).get(0).getId();
+//        estimateItemRepository.deleteFromRelationTableById(eiId);
+//        if(eiId!=null) {
+//            estimateItemRepository.deleteById(eiId);
+//        }
         estimate.getEstimateItems().removeIf(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)));
 
         estimate.calculateAmounts();
@@ -483,5 +498,5 @@ public class UserController {
         }
         model.addAttribute("userPriceList", priceList);
         return "user-pricelist";
-  }
+    }
 }

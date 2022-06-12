@@ -23,7 +23,7 @@ public class Estimate {
     private BigDecimal totalGrossAmount;
     @Convert(converter = LocalDateTimeAttributeConverter.class)
     private LocalDateTime createdOn;
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     List<EstimateItem> estimateItems = new ArrayList<>();
 
     public Estimate() {

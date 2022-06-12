@@ -15,6 +15,9 @@ public interface EstimateItemRepository extends JpaRepository<EstimateItem, Long
     @Query(nativeQuery = true,value = "DELETE FROM estimateplus.estimate_estimateitem WHERE estimateItems_id = ?1")
     void deleteFromRelationTableById(Long id);
 
+    @Query(nativeQuery = true,value = "SELECT * FROM estimateplus.estimate_estimateitem WHERE estimateItems_id = ?1")
+    EstimateItem findByItemInParentTable(Long id);
+
 //    @Modifying
 //    @Transactional
 //    @Query(nativeQuery = true,value = "DELETE FROM estimateplus.estimateitem WHERE id = ?1")
@@ -26,5 +29,4 @@ public interface EstimateItemRepository extends JpaRepository<EstimateItem, Long
 
     @Query("SELECT ei FROM EstimateItem ei LEFT JOIN FETCH ei.priceListItem pi where pi.id = :id")
     EstimateItem findByPriceListItemId(@Param("id") Long id);
-
 }

@@ -1,8 +1,10 @@
 package pl.estimateplus.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import pl.estimateplus.entity.Estimate;
 import pl.estimateplus.entity.User;
 
@@ -20,9 +22,9 @@ public interface EstimateRepository extends JpaRepository<Estimate, Long> {
 //        @Query("SELECT e FROM Estimate e LEFT JOIN FETCH e.name")
 //    Estimate findByUserIdAndEstimateName(Long userId, String estimateName);
 
-
-
-
-
-
+//    @Modifying
+//    @Transactional
+//    @Query(nativeQuery = true,value = "DELETE FROM estimateplus.estimate WHERE estimate.id = ?1")
+//    void deleteById(Long id);
+//
 }

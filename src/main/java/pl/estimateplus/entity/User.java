@@ -20,7 +20,7 @@ public class User {
     private String password;
     private boolean admin;
 //    @OneToMany (fetch = FetchType.EAGER)
-    @OneToMany
+    @OneToMany (cascade = CascadeType.ALL)
     List<Estimate> estimates = new ArrayList<>();
     @ManyToOne
     private PriceList userPriceList;
