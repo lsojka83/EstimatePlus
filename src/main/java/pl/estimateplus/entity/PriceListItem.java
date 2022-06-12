@@ -27,11 +27,11 @@ public class PriceListItem {
     private String brand;
     private String comment;
     @DecimalMin("0")
-    private BigDecimal unitNetPrice;
+    private BigDecimal unitNetPrice = BigDecimal.valueOf(0);
     @NotBlank
     private String unit;
     @Min(0)
-    private Integer baseVatRate;
+    private Integer baseVatRate = 0;
     @Convert(converter = LocalDateTimeAttributeConverter.class)
     private LocalDateTime addedOn = null;
 
