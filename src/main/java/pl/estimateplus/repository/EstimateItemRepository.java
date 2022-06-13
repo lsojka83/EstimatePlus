@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.estimateplus.entity.Estimate;
 import pl.estimateplus.entity.EstimateItem;
 
+import java.util.List;
+
 public interface EstimateItemRepository extends JpaRepository<EstimateItem, Long> {
 
     @Modifying
@@ -26,7 +28,13 @@ public interface EstimateItemRepository extends JpaRepository<EstimateItem, Long
 
 //    @Query("SELECT e FROM Estimate e LEFT JOIN FETCH e.estimateItems i where i.id = :id")
 //    Estimate findByPriceListItemId(@Param("id") Long id);
+//
+//    @Query("SELECT ei FROM EstimateItem ei LEFT JOIN FETCH ei.priceListItem pi where pi.id = :id")
+//    EstimateItem findByPriceListItemId(@Param("id") Long id);
 
     @Query("SELECT ei FROM EstimateItem ei LEFT JOIN FETCH ei.priceListItem pi where pi.id = :id")
-    EstimateItem findByPriceListItemId(@Param("id") Long id);
+    List<EstimateItem> findByPriceListItemId(@Param("id") Long id);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM estimateplus.estimateitem LEFT JOIN estimateplus.estimate_estimateitem On estimateitem.id = estimate_estimateitem.estimateItems_id WHERE Estimate_id is null")
+    List<EstimateItem> findAllItemsNotPresentInParentJoiningTable();
 }

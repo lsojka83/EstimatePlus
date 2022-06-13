@@ -165,30 +165,48 @@ public class UserController {
 //        System.out.println("!!!!button"+ request.getAttribute("button"));
 
         //Save estimate
-        System.out.println("!!!!estimate" + estimate);
+        logger.info("!!!!Save-start" + estimate);
         if (button != null && button.equals("save")) {
 //            if (result.hasErrors()) {
 //                return "estimate-form";
 //            }
 //            estimate.setName();
             //???
-            estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
+//            estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
+
             estimate.setEstimateItems(estimate.getEstimateItems());
-            //???
-            if (estimate.getEstimateItems().stream().toList().stream().filter(ei -> ei.getId() == null).count() > 0) {
-                List<EstimateItem> newItems = estimate.getEstimateItems().stream().toList().stream().filter(ei -> ei.getId() == null).collect(Collectors.toList());
-                estimate.getEstimateItems().addAll(newItems);
-                estimate.setEstimateItems(estimate.getEstimateItems());
+            if (estimate.getEstimateItems().stream().toList().stream().filter(ei -> ei.getId() == null).count() > 0)  //adds not save eis to current estimateitem list
+            {
+                List<EstimateItem> newItems = estimate.getEstimateItems().stream()
+                        .filter(ei -> ei.getId() == null)
+                        .collect(Collectors.toList());
+
+                List<EstimateItem> alreadySavedItems = estimate.getEstimateItems().stream()
+                        .filter(ei -> ei.getId() != null)
+                        .collect(Collectors.toList());
+
+                alreadySavedItems.addAll(newItems);
+                estimate.setEstimateItems(alreadySavedItems);
             }
             estimate.calculateAmounts();
             logger.info("!!!! " + estimate);
-
             estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
+
             try {
                 estimateRepository.save(estimate);
             } catch (Exception e) {
                 logger.warn(e.toString());
+                logger.warn(e.getMessage());
             }
+
+
+            //Delete eis in ei table when not present in joing table
+            estimateItemRepository.findAllItemsNotPresentInParentJoiningTable()
+                    .stream()
+                    .forEach(ei-> estimateItemRepository.delete(ei));
+
+
+            //Save user when estimate is new and not exists in DB
             user = userRepository.findByIdWithEstimates(user.getId());
             if (user.getEstimates().stream()
                     .filter(e -> e.getId().equals(estimate.getId()))
@@ -371,11 +389,25 @@ public class UserController {
         userPR.countItems();
         priceListRepository.save(userPR);
 
-        if (estimateItemRepository.findByPriceListItemId(Long.parseLong(id)) != null) {
-            Long estimateItemId = estimateItemRepository.findByPriceListItemId(Long.parseLong(id)).getId();
-            estimateItemRepository.deleteFromRelationTableById(estimateItemId);
-            if (estimateItemRepository.findById(estimateItemId).isPresent()) {
-                estimateItemRepository.deleteById(estimateItemId);
+        if (estimateItemRepository.findByPriceListItemId(Long.parseLong(id)) != null) //get unempty list
+        {
+//            Long estimateItemId = estimateItemRepository.findByPriceListItemId(Long.parseLong(id)).getId();
+
+            List<Long> estimateItemIds =  estimateItemRepository.findByPriceListItemId(Long.parseLong(id))
+                    .stream()
+                    .map(ei->ei.getId())
+                    .collect(Collectors.toList());
+
+            estimateItemIds.stream()
+                            .forEach(eiId-> estimateItemRepository.deleteFromRelationTableById(eiId)); //remove from parent table
+//            estimateItemRepository.deleteFromRelationTableById(estimateItemId);
+//            if (estimateItemRepository.findById(estimateItemId).isPresent()) {
+//                estimateItemRepository.deleteById(estimateItemId);
+//            }
+            if(estimateItemRepository.findAllById(estimateItemIds).size()>0)
+            {
+                estimateItemIds.stream()
+                        .forEach(eiId-> estimateItemRepository.deleteById(eiId)); //remove from table
             }
         }
 
@@ -456,12 +488,16 @@ public class UserController {
         Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
         logger.info("!!! " + estimate);
 
-        Long eiId = estimate.getEstimateItems().stream().filter(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId))).collect(Collectors.toList()).get(0).getId();
+        Long eiId = estimate.getEstimateItems()
+                .stream()
+                .filter(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)))
+                .collect(Collectors.toList()).get(0).getId();
 //        estimateItemRepository.deleteFromRelationTableById(eiId);
 //        if(eiId!=null) {
 //            estimateItemRepository.deleteById(eiId);
 //        }
         estimate.getEstimateItems().removeIf(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)));
+
 
         estimate.calculateAmounts();
         model.addAttribute("estimate", estimate);
