@@ -5,7 +5,10 @@
 
 
 <p>
-    Number of users: ${userCount}
+    Number of users in DB: ${userCount}
+</p>
+<p>
+    Number of price lists in DB: ${priceListCount}
 </p>
 <p>
     <c:forEach items="${estimates}" var="estimate">

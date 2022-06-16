@@ -15,7 +15,7 @@ public interface EstimateItemRepository extends JpaRepository<EstimateItem, Long
     @Modifying
     @Transactional
     @Query(nativeQuery = true,value = "DELETE FROM estimateplus.estimate_estimateitem WHERE estimateItems_id = ?1")
-    void deleteFromRelationTableById(Long id);
+    void deleteFromParentRelationTableById(Long id);
 
     @Query(nativeQuery = true,value = "SELECT * FROM estimateplus.estimate_estimateitem WHERE estimateItems_id = ?1")
     EstimateItem findByItemInParentTable(Long id);

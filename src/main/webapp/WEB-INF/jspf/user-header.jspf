@@ -4,10 +4,34 @@
 <html lang="pl">
 
 <head>
-        <title>User Panel</title>
+    <title>User Panel</title>
 </head>
 
 <body>
+
+<table border="1px">
+    <tbody>
+    <tr>
+        <td>
+            <p>
+                User name: ${user.userName}
+            </p>
+        </td>
+        <td>
+            <p>
+                UserId: ${user.id}
+            </p>
+        </td>
+        <td>
+            <p>
+                User's pricelist Id: ${user.userPriceList.id}
+            </p>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<p>
 <table border="1px">
     <tbody>
     <tr>
@@ -23,12 +47,13 @@
         </td>
         <td>
             <p>
-                <a href="/user/additem">Add/edit user price list</a>
+                <a href="/user/additem">Add user price list item</a>
             </p>
         </td>
         <td>
             <p>
-                <a href="/user/showuserpricelist">Show user price list</a>
+<%--                <a href="/user/showuserpricelist">Show user price list</a>--%>
+                <a href="/user/selectpricelist">Show/edit price list</a>
             </p>
         </td>
         <td>
@@ -42,25 +67,6 @@
             </p>
         </td>
     </tr>
-    <tr>
-        <td>
-            <p>
-               User name: ${user.userName}
-            </p>
-        </td>
-        <td>
-            <p>
-                UserId: ${user.id}
-            </p>
-        </td>
-        <td>
-            <p>
-                User's pricelist Id: ${user.userPriceList.id}
-            </p>
-        </td>
-
-
-    </tr>
     </tbody>
 </table>
-
+</p>

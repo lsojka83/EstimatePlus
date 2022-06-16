@@ -36,6 +36,17 @@ public class Excel {
 //        }
 //        System.out.println(resource.getFile().getName().split("\\.")[0]);
 
+        String s = "799.89";
+
+        double d = Double.parseDouble(s);
+        d = d*100;
+        Long l = null;
+//        l = Long.parseLong();
+
+        BigDecimal b  = new BigDecimal(s);
+
+        System.out.println(b);
+
     }
 
 
@@ -43,7 +54,7 @@ public class Excel {
 
         PriceList priceList = new PriceList();
         int itemsCount = 0;
-        String priceListName = multipartFile.getOriginalFilename();
+        String priceListName = multipartFile.getOriginalFilename().split("\\.")[0];
         System.out.println(priceListName);
 
         //load file
@@ -114,65 +125,56 @@ public class Excel {
 
             for (Map.Entry<Integer, List<String>> entry : data.entrySet()) {
                 //vendorName
-//                System.out.println(entry.getValue());
-//                String vendorName = fileLocation.split(".")[0];
                 String vendorName = multipartFile.getOriginalFilename().split("\\.")[0];
 
-                String referenceNumber = entry.getValue().get(6); //Legrand - referenceNumber
+                String referenceNumber = entry.getValue().get(6); //referenceNumber
                 String description = "no description";
                 if (!entry.getValue().get(7).isEmpty() && !entry.getValue().get(7).isBlank()) {
-                    description = entry.getValue().get(7); //Legrand - description
+                    description = entry.getValue().get(7); //description
                 }
-                String brand = entry.getValue().get(5); //Legrand - brand
+                String brand = entry.getValue().get(5); //brand
                 String comment = "no comment";//comment
-                BigDecimal unitNetPrice = BigDecimal.valueOf(1l);
+
+                BigDecimal unitNetPrice;
+                try {
+                    String s = entry.getValue().get(9).trim();
+                    unitNetPrice = new BigDecimal(s).setScale(2); //unitNetPrice
+
+                }
+                catch (Exception e)
+                {
+                    unitNetPrice = new BigDecimal("0").setScale(2); //unitNetPrice
+                }
+
+                String unit = entry.getValue().get(10); //unit
+
+                int baseVatRate = 23;
+
 
                 try {
-                    unitNetPrice = BigDecimal.valueOf(Long.valueOf(entry.getValue().get(9).trim())); //Legrand - unitNetPrice
-                } catch (Exception e) {
-//                    unitNetPrice = BigInteger.valueOf(Long.parseLong(entry.getValue().get(9).substring(0,entry.getValue().get(9).indexOf(point)))); //Legrand - unitNetPrice
-//                    System.out.println(entry.getValue().get(6));
-//                    System.out.println(entry.getValue().get(9));
-//                    e.printStackTrace();
-                }
-                String unit = entry.getValue().get(10); //Legrand - unit
-                int baseVatRate = 23;
-                if (!entry.getValue().get(14).isEmpty() && !entry.getValue().get(14).isBlank()) {
-                    try {
-                        baseVatRate = Integer.parseInt(entry.getValue().get(14).split("\\.")[0]);
 
-//                        baseVatRate = Integer.parseInt(entry.getValue().get(14)); //Legrand - baseVatRate
-                    } catch (NumberFormatException e) {
+                    if (!entry.getValue().get(14).isEmpty() && !entry.getValue().get(14).isBlank()) {
+                        try {
+                            if(entry.getValue().get(14).contains("\\.")) {
+                                baseVatRate = Integer.parseInt(entry.getValue().get(14).split("\\.")[0]);
+                            }else if(entry.getValue().get(14).contains("\\,"))
+                            {
+                                baseVatRate = Integer.parseInt(entry.getValue().get(14).split("\\,")[0]);
+                            }
+                            else
+                            {
+                                baseVatRate = Integer.parseInt(entry.getValue().get(14));
+                            }
 
-//                    System.out.println(Arrays.toString(entry.getValue().get(14).split(entry.getValue().get(14).replaceAll("[0-9]",""))));
-//                    baseVatRate = Integer.valueOf(entry.getValue().get(14).split(entry.getValue().get(14).replaceAll("[0-9]",""))[0]);
-
-//                        System.out.println(entry.getValue().get(14));
-
-
-//                        System.out.println( entry.getValue().get(14) != null && entry.getValue().get(14).matches("[0-9.]+"));
-//                        baseVatRate = Integer.parseInt(entry.getValue().get(14).replace("0","").replace(".",""));
-
-//                        System.out.println(entry.getValue().get(14).split(".")[0]);
-//                        baseVatRate = Integer.parseInt(
-//                                entry.getValue().get(14)
-//                                        .substring(
-//                                                0,
-////                                                entry.getValue().get(14).indexOf(
-////                                                        entry.getValue().get(14).replaceAll("[0-9]", "").trim()
-////                                                )
-//                                                2
-//                                        )
-//                        );
-                        e.printStackTrace();
-
-                    } catch (Exception e) {
-
-//                        System.out.println(entry.getValue().get(6));
-                        e.printStackTrace();
-
-
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
+                }catch (Exception e)
+                {
+                    System.out.println(e.getMessage());
                 }
                 //addedOn
                 PriceListItem priceListItem = new PriceListItem(vendorName, referenceNumber, description, brand, comment, unitNetPrice, unit, baseVatRate);
@@ -181,6 +183,7 @@ public class Excel {
 
             }
         }
+        priceList.setUserOwned(false);
         priceList.setPriceListItems(priceListItems);
         priceList.setName(priceListName);
 

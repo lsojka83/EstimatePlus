@@ -4,11 +4,34 @@
 <html lang="pl">
 
 <head>
-        <title>Admin Panel</title>
+    <title>Admin Panel</title>
 
 </head>
 
 <body>
+<table border="1px">
+    <tbody>
+    <tr>
+        <td>
+            <p>
+                User name: ${user.userName}
+            </p>
+        </td>
+        <td>
+            <p>
+                UserId: ${user.id}
+            </p>
+        </td>
+        <td>
+            <p>
+                Is an admin: ${user.admin}
+            </p>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<p>
 <table border="1px">
     <tbody>
     <tr>
@@ -26,7 +49,7 @@
 
         <td>
             <p>
-                <a href="/admin/list">View/edit pricelist </a>
+                <a href="/admin/selectpricelist">View/edit pricelist </a>
             </p>
         </td>
         <td>
@@ -40,27 +63,7 @@
             </p>
         </td>
     </tr>
-
-    <tr>
-        <td>
-            <p>
-                User name: ${user.userName}
-            </p>
-        </td>
-        <td>
-            <p>
-                UserId: ${user.id}
-            </p>
-        </td>
-        <td>
-            <p>
-                Is an admin: ${user.admin}
-            </p>
-        </td>
-
-
-    </tr>
-
     </tbody>
 </table>
+</p>
 

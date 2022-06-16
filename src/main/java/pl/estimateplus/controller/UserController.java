@@ -10,12 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import pl.estimateplus.entity.*;
 import pl.estimateplus.repository.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -192,12 +190,11 @@ public class UserController {
             logger.info("!!!! " + estimate);
             estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
 
-            try {
+//            try {
                 estimateRepository.save(estimate);
-            } catch (Exception e) {
-                logger.warn(e.toString());
-                logger.warn(e.getMessage());
-            }
+//            } catch (Exception e) {
+//                logger.warn("!!!!"+e.getMessage());
+//            }
 
 
             //Delete eis in ei table when not present in joing table
@@ -229,8 +226,8 @@ public class UserController {
             estimate.getEstimateItems().stream().forEach(ei->
                     {
                         if(ei.getId()!=null) {
-                            estimateItemRepository.deleteFromRelationTableById(ei.getId());
-                            estimateItemRepository.deleteById(ei.getId());
+                            estimateItemRepository.deleteFromParentRelationTableById(ei.getId());
+//                            estimateItemRepository.deleteById(ei.getId());
                         }
                     }
             );
@@ -325,6 +322,7 @@ public class UserController {
         PriceList userPR = null;
         if (userRepository.findById(user.getId()).get().getUserPriceList() == null) {
             userPR = new PriceList();
+            userPR.setUserOwned(true);
             userPR.setNumberOfItems(0l);
             userPR.setName(userName);
             userPR.setPriceListItems(new ArrayList<>());
@@ -339,8 +337,8 @@ public class UserController {
         userPR.getPriceListItems().add(priceListItem);
         userPR.setNumberOfItems(Long.valueOf(userPR.getPriceListItems().size()));
         priceListRepository.save(userPR);
-        model.addAttribute("userPriceList", userPR);
-        return "user-pricelist";
+        model.addAttribute("priceList", userPR);
+        return "user-show-pricelist";
     }
 
     //Edit user pricelist item
@@ -370,7 +368,7 @@ public class UserController {
                         userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
                 )
         );
-        return "user-pricelist";
+        return "user-show-pricelist";
     }
 
     //Delete pricelist item
@@ -399,11 +397,7 @@ public class UserController {
                     .collect(Collectors.toList());
 
             estimateItemIds.stream()
-                            .forEach(eiId-> estimateItemRepository.deleteFromRelationTableById(eiId)); //remove from parent table
-//            estimateItemRepository.deleteFromRelationTableById(estimateItemId);
-//            if (estimateItemRepository.findById(estimateItemId).isPresent()) {
-//                estimateItemRepository.deleteById(estimateItemId);
-//            }
+                            .forEach(eiId-> estimateItemRepository.deleteFromParentRelationTableById(eiId)); //remove from parent table
             if(estimateItemRepository.findAllById(estimateItemIds).size()>0)
             {
                 estimateItemIds.stream()
@@ -421,9 +415,9 @@ public class UserController {
         user.setEstimates(userEstimates);
         userRepository.save(user);
 
-        model.addAttribute("userPriceList", userPR);
+        model.addAttribute("priceList", userPR);
 
-        return "user-pricelist";
+        return "user-show-pricelist";
     }
 
     //Edit estimate item
@@ -506,14 +500,33 @@ public class UserController {
 
 
     @GetMapping("/selectpricelist")
-    public String selectPriceList() {
-        return "price-list-select";
+    public String selectPriceList(
+            HttpSession httpSession,
+            Model model
+    )
+    {
+        User user = (User) httpSession.getAttribute("user");
+        model.addAttribute("userAvailablePriceLists",priceListRepository.findAllByUserAndAllGeneral(user.getId()));
+        return "user-select-price-list-to-show";
     }
 
-    @GetMapping("/showpricelist")
-    public String showPriceList() {
-        return "price-list-show";
+    @PostMapping("/showpricelist")
+    public String showPriceList(
+            Model model,
+            HttpSession httpSession,
+            @RequestParam String selectedPriceListId
+    ) {
+        User user = (User) httpSession.getAttribute("user");
+        if(user.getUserPriceList().getId().equals(priceListRepository.findById(Long.parseLong(selectedPriceListId)).get().getId()))
+        {
+            model.addAttribute("isUserPricelist","true");
+        }
+        PriceList priceList = priceListRepository.findByIdWithPriceListItems(Long.parseLong(selectedPriceListId));
+        logger.info("!!! "+priceList);
+        model.addAttribute("priceList", priceList);
+        return "user-show-pricelist";
     }
+
 
     //View price list - user's and other
     @GetMapping("/showuserpricelist")
@@ -532,7 +545,9 @@ public class UserController {
         } else {
             priceList = new PriceList();
         }
-        model.addAttribute("userPriceList", priceList);
-        return "user-pricelist";
+        model.addAttribute("p" +
+                "riceList", priceList);
+//        return "user-pricelist";
+        return "user-show-pricelist";
     }
 }

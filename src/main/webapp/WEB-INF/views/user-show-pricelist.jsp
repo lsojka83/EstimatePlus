@@ -6,10 +6,10 @@
 
 
 <p>
-    <span>Name: ${userPriceList.name}</span>
+    <span>Name: ${priceList.name}</span>
 </p>
 <p>
-    <span>Number of items: ${userPriceList.numberOfItems}</span>
+    <span>Number of items: ${priceList.numberOfItems}</span>
 </p>
 
 <table border="1px">
@@ -25,11 +25,13 @@
         <th>unit</th>
         <th>baseVatRate</th>
         <th>addedOn</th>
-        <th>Actions</th>
+        <c:if test="${isUserPricelist =='true'}">
+            <th>Actions</th>
+        </c:if>
     </tr>
     </thead>
     <tbody>
-    <c:forEach var="priceListItem" items="${userPriceList.priceListItems}">
+    <c:forEach var="priceListItem" items="${priceList.priceListItems}">
         <tr>
             <td>${priceListItem.id}</td>
             <td>${priceListItem.vendorName}</td>
@@ -41,10 +43,13 @@
             <td>${priceListItem.unit}</td>
             <td>${priceListItem.baseVatRate}</td>
             <td>${priceListItem.addedOn}</td>
+            <c:if test="${isUserPricelist =='true'}">
+
             <td>
                 <a href="/user/edititem?id=${priceListItem.id}">Edit</a>
                 <a href="/user/deleteitem?id=${priceListItem.id}">Delete</a>
-            </td>
+            </td>        </c:if>
+
         </tr>
     </c:forEach>
     </tbody>

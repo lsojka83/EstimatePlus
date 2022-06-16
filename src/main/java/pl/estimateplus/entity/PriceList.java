@@ -15,6 +15,7 @@ public class PriceList {
     private Long numberOfItems;
     @OneToMany
     private List<PriceListItem> priceListItems;
+    boolean userOwned;
 
     public PriceList() {
     }
@@ -54,6 +55,14 @@ public class PriceList {
 
     public void setPriceListItems(List<PriceListItem> priceListItems) {
         this.priceListItems = priceListItems;
+    }
+
+    public boolean isUserOwned() {
+        return userOwned;
+    }
+
+    public void setUserOwned(boolean userOwned) {
+        this.userOwned = userOwned;
     }
 
     @Override

@@ -1,14 +1,15 @@
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%@ include file="/WEB-INF/jspf/admin-header.jspf" %>
 
 
-<p>Price list name: ${priceListName}</p>
-<p>Number of items: ${itemsCount}</p>
-<p>Content type: ${contentType}</p>
-
+<p>
+    <span>Name: ${priceList.name}</span>
+</p>
+<p>
+    <span>Number of items: ${priceList.numberOfItems}</span>
+</p>
 
 <table border="1px">
     <thead>
@@ -23,10 +24,11 @@
         <th>unit</th>
         <th>baseVatRate</th>
         <th>addedOn</th>
+        <th>Actions</th>
     </tr>
     </thead>
     <tbody>
-    <c:forEach var="priceListItem" items="${priceListItems}">
+    <c:forEach var="priceListItem" items="${priceList.priceListItems}">
         <tr>
             <td>${priceListItem.id}</td>
             <td>${priceListItem.vendorName}</td>
@@ -38,6 +40,10 @@
             <td>${priceListItem.unit}</td>
             <td>${priceListItem.baseVatRate}</td>
             <td>${priceListItem.addedOn}</td>
+            <td>
+                <a href="/admin/edititem?id=${priceListItem.id}&priceListId=${priceList.id}">Edit</a>
+                <a href="/admin/deleteitem?id=${priceListItem.id}&priceListId=${priceList.id}">Delete</a>
+            </td>
         </tr>
     </c:forEach>
     </tbody>
