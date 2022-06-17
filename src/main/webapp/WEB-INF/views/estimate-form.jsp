@@ -64,9 +64,15 @@
 <div>
     <form:button name="button" value="save">Save estimate to DB</form:button>
     <form:button name="button" value="delete">Delete estimate from DB</form:button>
+    <form:button name="button" value="download">Download as Excel</form:button>
+
 </div>
 </form:form>
 </p>
+
+<%--<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8,${excelFile}" download="${estimate.name}.xlsx">Save</a>--%>
+<%--<a href="data:application/xml;charset=utf-8,${excelFile}" download="${estimate.name}.xlsx">Save</a>--%>
+
 
 <%--<form method="post" action="/user/estimateform">--%>
 <%--    <button name="button" value="save" type="submit">Save to DB</button>--%>

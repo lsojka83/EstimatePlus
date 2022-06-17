@@ -22,8 +22,9 @@ public class User {
     @NotNull
     @Email
     private String email;
-    @Password //own validator
+//    @Password //own validator
     private String password;
+    private String passwordUnhashed;
     private boolean admin;
 //    @OneToMany (fetch = FetchType.EAGER)
     @OneToMany (cascade = CascadeType.ALL)
@@ -88,6 +89,14 @@ public class User {
 
     public void setEstimates(List<Estimate> estimates) {
         this.estimates = estimates;
+    }
+
+    public String getPasswordUnhashed() {
+        return passwordUnhashed;
+    }
+
+    public void setPasswordUnhashed(String passwordUnhashed) {
+        this.passwordUnhashed = passwordUnhashed;
     }
 
     @Override

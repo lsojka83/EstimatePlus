@@ -3,19 +3,29 @@ package pl.estimateplus.model;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.format.CellNumberStringMod;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ClassPathResource;
 
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
+import pl.estimateplus.entity.Estimate;
+import pl.estimateplus.entity.EstimateItem;
 import pl.estimateplus.entity.PriceList;
 import pl.estimateplus.entity.PriceListItem;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.http.HttpResponse;
 import java.util.*;
 
 
@@ -35,18 +45,6 @@ public class Excel {
 //            throw new RuntimeException(e);
 //        }
 //        System.out.println(resource.getFile().getName().split("\\.")[0]);
-
-        String s = "799.89";
-
-        double d = Double.parseDouble(s);
-        d = d*100;
-        Long l = null;
-//        l = Long.parseLong();
-
-        BigDecimal b  = new BigDecimal(s);
-
-        System.out.println(b);
-
     }
 
 
@@ -64,14 +62,19 @@ public class Excel {
         try {
             file = resource.getFile();
         } catch (IOException e) {
-            e.printStackTrace();
+            priceList.setErrorMessage(e.getMessage());
+            return priceList;
         }
         try (OutputStream os = new FileOutputStream(file)) {
             os.write(multipartFile.getBytes());
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+//            throw new RuntimeException(e);
+            priceList.setErrorMessage(e.getMessage());
+            return priceList;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+//            throw new RuntimeException(e);
+            priceList.setErrorMessage(e.getMessage());
+            return priceList;
         }
 
         Workbook workbook = null;
@@ -80,10 +83,14 @@ public class Excel {
         try {
             workbook = new XSSFWorkbook(file);
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            priceList.setErrorMessage(e.getMessage());
+            return priceList;
         } catch (InvalidFormatException e) {
 
-            throw new RuntimeException(e);
+//            throw new RuntimeException(e);
+            priceList.setErrorMessage(e.getMessage());
+            return priceList;
         }
 
         if (file != null && workbook != null) {
@@ -143,7 +150,9 @@ public class Excel {
                 }
                 catch (Exception e)
                 {
-                    unitNetPrice = new BigDecimal("0").setScale(2); //unitNetPrice
+//                    unitNetPrice = new BigDecimal("0").setScale(2); //unitNetPrice
+                    priceList.setErrorMessage(e.getMessage());
+                    return priceList;
                 }
 
                 String unit = entry.getValue().get(10); //unit
@@ -167,14 +176,19 @@ public class Excel {
                             }
 
                         } catch (NumberFormatException e) {
-                            e.printStackTrace();
+//                            e.printStackTrace();
+                            priceList.setErrorMessage(e.getMessage());
+                            return priceList;
                         } catch (Exception e) {
-                            e.printStackTrace();
+//                            e.printStackTrace();
+                            priceList.setErrorMessage(e.getMessage());
+                            return priceList;
                         }
                     }
                 }catch (Exception e)
                 {
-                    System.out.println(e.getMessage());
+                    priceList.setErrorMessage(e.getMessage());
+                    return priceList;
                 }
                 //addedOn
                 PriceListItem priceListItem = new PriceListItem(vendorName, referenceNumber, description, brand, comment, unitNetPrice, unit, baseVatRate);
@@ -189,4 +203,143 @@ public class Excel {
 
         return priceList;
     }
+
+    public static XSSFWorkbook getExcelWorkbook(Estimate estimate) {
+
+        XSSFWorkbook workbook = new XSSFWorkbook();
+
+        Sheet sheet = workbook.createSheet(estimate.getName());
+        sheet.setColumnWidth(0,5000); //referenceNumber
+        sheet.setColumnWidth(1,15000); //description
+        sheet.setColumnWidth(2,5000); //brand
+        sheet.setColumnWidth(3,5000); //unitNetPrice
+        sheet.setColumnWidth(4,3000); //unit
+        sheet.setColumnWidth(5,2000); //individualVatRate
+        sheet.setColumnWidth(6,2000); //quantity
+        sheet.setColumnWidth(7,15000); //comment
+
+        Row header = sheet.createRow(0);
+
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        XSSFFont font = ((XSSFWorkbook) workbook).createFont();
+        font.setFontName("Arial");
+        font.setFontHeightInPoints((short) 16);
+        font.setBold(true);
+        headerStyle.setFont(font);
+
+        Cell headerCell = header.createCell(0);
+        headerCell.setCellValue("referenceNumber");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(1);
+        headerCell.setCellValue("description");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(2);
+        headerCell.setCellValue("brand");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(3);
+        headerCell.setCellValue("unitNetPrice");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(4);
+        headerCell.setCellValue("unit");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(5);
+        headerCell.setCellValue("individualVatRate");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(6);
+        headerCell.setCellValue("quantity");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(7);
+        headerCell.setCellValue("comment");
+        headerCell.setCellStyle(headerStyle);
+
+
+        CellStyle style = workbook.createCellStyle();
+        style.setWrapText(true);
+        int rowIndex = 1; // row below header row
+
+        for(EstimateItem ei: estimate.getEstimateItems())
+        {
+            Row row = sheet.createRow(rowIndex);
+            Cell cell = row.createCell(0);
+            cell.setCellValue(ei.getPriceListItem().getReferenceNumber());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(1);
+            cell.setCellValue(ei.getPriceListItem().getDescription());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(2);
+            cell.setCellValue(ei.getPriceListItem().getBrand());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(3);
+            cell.setCellValue(ei.getPriceListItem().getUnitNetPrice().doubleValue());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(4);
+            cell.setCellValue(ei.getPriceListItem().getUnit());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(5);
+            cell.setCellValue(ei.getIndividualVatRate());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(6);
+            cell.setCellValue(ei.getQuantity());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(7);
+            cell.setCellValue(ei.getPriceListItem().getComment());
+            cell.setCellStyle(style);
+
+            rowIndex++;
+        }
+
+        rowIndex++; //extra row
+
+
+        Row row = sheet.createRow(rowIndex);
+        Cell cell = row.createCell(2);
+        cell.setCellValue("TotalNetAmount");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(3);
+        cell.setCellValue(estimate.getTotalNetAmount().doubleValue());
+        cell.setCellStyle(style);
+
+        rowIndex++;
+        row = sheet.createRow(rowIndex);
+        cell = row.createCell(2);
+        cell.setCellValue("TotalVatAmount");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(3);
+        cell.setCellValue(estimate.getTotalVatAmount().floatValue());
+        cell.setCellStyle(style);
+
+        rowIndex++;
+        row = sheet.createRow(rowIndex);
+        cell = row.createCell(2);
+        cell.setCellValue("TotalGrossAmount");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(3);
+        cell.setCellValue(estimate.getTotalGrossAmount().floatValue());
+        cell.setCellStyle(style);
+
+
+
+        return workbook;
+    }
+
 }

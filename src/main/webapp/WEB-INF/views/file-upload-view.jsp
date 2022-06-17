@@ -16,6 +16,6 @@
     <td>${file.contentType}</td>
   </tr>
 </table>
-
+${error}
 </body>
 </html>

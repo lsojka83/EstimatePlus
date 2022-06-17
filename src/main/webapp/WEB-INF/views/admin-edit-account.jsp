@@ -24,6 +24,9 @@
         <label for="password">Password</label>
         <form:input path="password" id="password" type="password"></form:input>
         <form:errors path="password"/>
+        <c:if test="${not empty invalidPassword}">
+            ${invalidPassword}
+        </c:if>
     </div>
 
     <form:hidden path="admin"></form:hidden>

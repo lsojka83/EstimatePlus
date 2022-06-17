@@ -12,7 +12,10 @@ import pl.estimateplus.entity.PriceList;
 import pl.estimateplus.entity.PriceListItem;
 import pl.estimateplus.entity.User;
 import pl.estimateplus.model.Excel;
+import pl.estimateplus.model.Messages;
+import pl.estimateplus.model.Security;
 import pl.estimateplus.repository.*;
+import pl.estimateplus.validator.PasswordValidator;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
@@ -32,13 +35,16 @@ public class AdminController {
     private final UserRepository userRepository;
     private final EstimateRepository estimateRepository;
     private final EstimateItemRepository estimateItemRepository;
+    private final PasswordValidator passwordValidator;
 
-    public AdminController(PriceListRepository priceListRepository, PriceListItemRepository priceListItemRepository, UserRepository userRepository, EstimateRepository estimateRepository, EstimateItemRepository estimateItemRepository) {
+
+    public AdminController(PriceListRepository priceListRepository, PriceListItemRepository priceListItemRepository, UserRepository userRepository, EstimateRepository estimateRepository, EstimateItemRepository estimateItemRepository, PasswordValidator passwordValidator) {
         this.priceListRepository = priceListRepository;
         this.priceListItemRepository = priceListItemRepository;
         this.userRepository = userRepository;
         this.estimateRepository = estimateRepository;
         this.estimateItemRepository = estimateItemRepository;
+        this.passwordValidator = passwordValidator;
     }
 
 
@@ -72,6 +78,11 @@ public class AdminController {
         if (file.getContentType().equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
             PriceList existingPriceList;
             priceList = Excel.importExcelData(file);
+            if(priceList.getErrorMessage()!=null)
+            {
+                model.addAttribute("error",priceList.getErrorMessage());
+                return "file-upload-view";
+            }
             if(priceListRepository.findByName(priceList.getName())!= null)
             {
 //                logger.info("!!!price list exists");
@@ -274,9 +285,16 @@ public class AdminController {
             BindingResult results,
             Model model
     ) {
-        if (results.hasErrors()) {
+        if(!passwordValidator.isValid(user.getPassword(), null) || results.hasErrors())
+        {
+            if(!passwordValidator.isValid(user.getPassword(),null))
+            {
+                model.addAttribute("invalidPassword", Messages.INVALID_PASSWORD);
+            }
             return "admin-edit-account";
         }
+        user.setPasswordUnhashed(user.getPassword());
+        user.setPassword(Security.hashPassword(user.getPassword()));
         userRepository.save(user);
         model.addAttribute("userCount", userRepository.count());
         return "admin-dashboard";

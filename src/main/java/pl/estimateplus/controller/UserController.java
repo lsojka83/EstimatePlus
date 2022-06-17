@@ -1,20 +1,35 @@
 package pl.estimateplus.controller;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import pl.estimateplus.entity.*;
+import pl.estimateplus.model.Excel;
+import pl.estimateplus.model.Messages;
+import pl.estimateplus.model.Security;
 import pl.estimateplus.repository.*;
+import pl.estimateplus.validator.PasswordValidator;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.validation.ConstraintViolation;
 import javax.validation.Valid;
+import javax.validation.Validator;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
@@ -31,18 +46,22 @@ public class UserController {
     private final UserRepository userRepository;
     private final EstimateRepository estimateRepository;
     private final EstimateItemRepository estimateItemRepository;
+    private final PasswordValidator passwordValidator;
+    private final Validator validator;
 
 
     public UserController(PriceListRepository priceListRepository,
                           PriceListItemRepository priceListItemRepository,
                           UserRepository userRepository,
                           EstimateRepository estimateRepository,
-                          EstimateItemRepository estimateItemRepository) {
+                          EstimateItemRepository estimateItemRepository, PasswordValidator passwordValidator, Validator validator) {
         this.priceListRepository = priceListRepository;
         this.priceListItemRepository = priceListItemRepository;
         this.userRepository = userRepository;
         this.estimateRepository = estimateRepository;
         this.estimateItemRepository = estimateItemRepository;
+        this.passwordValidator = passwordValidator;
+        this.validator = validator;
     }
 
 
@@ -74,16 +93,20 @@ public class UserController {
             BindingResult results,
             Model model
     ) {
-        if (results.hasErrors()) {
+
+        if (!passwordValidator.isValid(user.getPassword(), null) || results.hasErrors()) {
+            if (!passwordValidator.isValid(user.getPassword(), null)) {
+                model.addAttribute("invalidPassword", Messages.INVALID_PASSWORD);
+            }
             return "user-edit-account";
         }
+        user.setPasswordUnhashed(user.getPassword());
+        user.setPassword(Security.hashPassword(user.getPassword()));
         userRepository.save(user);
         model.addAttribute("numberOfEstimates", userRepository.findByIdWithEstimates(user.getId()).getEstimates().size());
         model.addAttribute("estimates", userRepository.findByIdWithEstimates(user.getId()).getEstimates());
         return "user-dashboard";
-//        return "redirect:/user/";
     }
-
 
     //Add/edit estimate
     @GetMapping("/estimate")
@@ -127,7 +150,8 @@ public class UserController {
                                     @RequestParam(required = false) Long estimateId
     ) {
         model.addAttribute("estimate", estimateRepository.findById(estimateId).get());
-
+        model.addAttribute("excelFile", Excel.getExcelWorkbook(estimateRepository.findById(estimateId).get()));
+        logger.info("!!!!" + estimateRepository.findById(estimateId).get());
         return "estimate-form";
     }
 
@@ -140,7 +164,9 @@ public class UserController {
 //                                   @Valid @ModelAttribute("estimate")Estimate estimate,
                                    @Valid Estimate estimate,
                                    BindingResult result,
-                                   @RequestParam(required = false) Long estimateId
+                                   @RequestParam(required = false) Long estimateId,
+                                   HttpServletRequest request,
+                                   HttpServletResponse response
 
     ) {
 
@@ -191,7 +217,7 @@ public class UserController {
             estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
 
 //            try {
-                estimateRepository.save(estimate);
+            estimateRepository.save(estimate);
 //            } catch (Exception e) {
 //                logger.warn("!!!!"+e.getMessage());
 //            }
@@ -200,7 +226,7 @@ public class UserController {
             //Delete eis in ei table when not present in joing table
             estimateItemRepository.findAllItemsNotPresentInParentJoiningTable()
                     .stream()
-                    .forEach(ei-> estimateItemRepository.delete(ei));
+                    .forEach(ei -> estimateItemRepository.delete(ei));
 
 
             //Save user when estimate is new and not exists in DB
@@ -221,11 +247,11 @@ public class UserController {
             user = userRepository.findByIdWithEstimates(user.getId());
             user.getEstimates().removeIf(e -> e.getId() == estimate.getId());
             userRepository.save(user);
-            logger.info("!!! Delete"+estimate);
+            logger.info("!!! Delete" + estimate);
 
-            estimate.getEstimateItems().stream().forEach(ei->
+            estimate.getEstimateItems().stream().forEach(ei ->
                     {
-                        if(ei.getId()!=null) {
+                        if (ei.getId() != null) {
                             estimateItemRepository.deleteFromParentRelationTableById(ei.getId());
 //                            estimateItemRepository.deleteById(ei.getId());
                         }
@@ -235,6 +261,12 @@ public class UserController {
 
             model.addAttribute("estimate", new Estimate());
             return "estimate-form";
+        }
+
+        //Download estimate
+        if (button != null && button.equals("download")) {
+            return "forward:/user/downloadFile";
+
         }
 
 
@@ -290,8 +322,31 @@ public class UserController {
             }
         }
 
+
         model.addAttribute("estimate", estimate);
         return "estimate-form";
+    }
+
+
+    @PostMapping(value = "/downloadFile")
+    public ResponseEntity<ByteArrayResource> downloadFile(
+            HttpSession httpSession
+    ) throws Exception {
+        try {
+            Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            XSSFWorkbook workbook = Excel.getExcelWorkbook(estimate);
+            HttpHeaders header = new HttpHeaders();
+            header.setContentType(new MediaType("application", "force-download"));
+            header.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + estimate.getName() + ".xlsx");
+            workbook.write(stream);
+            workbook.close();
+            return new ResponseEntity<>(new ByteArrayResource(stream.toByteArray()),
+                    header, HttpStatus.CREATED);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     //Add user pricelist item
@@ -391,17 +446,16 @@ public class UserController {
         {
 //            Long estimateItemId = estimateItemRepository.findByPriceListItemId(Long.parseLong(id)).getId();
 
-            List<Long> estimateItemIds =  estimateItemRepository.findByPriceListItemId(Long.parseLong(id))
+            List<Long> estimateItemIds = estimateItemRepository.findByPriceListItemId(Long.parseLong(id))
                     .stream()
-                    .map(ei->ei.getId())
+                    .map(ei -> ei.getId())
                     .collect(Collectors.toList());
 
             estimateItemIds.stream()
-                            .forEach(eiId-> estimateItemRepository.deleteFromParentRelationTableById(eiId)); //remove from parent table
-            if(estimateItemRepository.findAllById(estimateItemIds).size()>0)
-            {
+                    .forEach(eiId -> estimateItemRepository.deleteFromParentRelationTableById(eiId)); //remove from parent table
+            if (estimateItemRepository.findAllById(estimateItemIds).size() > 0) {
                 estimateItemIds.stream()
-                        .forEach(eiId-> estimateItemRepository.deleteById(eiId)); //remove from table
+                        .forEach(eiId -> estimateItemRepository.deleteById(eiId)); //remove from table
             }
         }
 
@@ -503,10 +557,9 @@ public class UserController {
     public String selectPriceList(
             HttpSession httpSession,
             Model model
-    )
-    {
+    ) {
         User user = (User) httpSession.getAttribute("user");
-        model.addAttribute("userAvailablePriceLists",priceListRepository.findAllByUserAndAllGeneral(user.getId()));
+        model.addAttribute("userAvailablePriceLists", priceListRepository.findAllByUserAndAllGeneral(user.getId()));
         return "user-select-price-list-to-show";
     }
 
@@ -517,12 +570,11 @@ public class UserController {
             @RequestParam String selectedPriceListId
     ) {
         User user = (User) httpSession.getAttribute("user");
-        if(user.getUserPriceList().getId().equals(priceListRepository.findById(Long.parseLong(selectedPriceListId)).get().getId()))
-        {
-            model.addAttribute("isUserPricelist","true");
+        if (user.getUserPriceList().getId().equals(priceListRepository.findById(Long.parseLong(selectedPriceListId)).get().getId())) {
+            model.addAttribute("isUserPricelist", "true");
         }
         PriceList priceList = priceListRepository.findByIdWithPriceListItems(Long.parseLong(selectedPriceListId));
-        logger.info("!!! "+priceList);
+        logger.info("!!! " + priceList);
         model.addAttribute("priceList", priceList);
         return "user-show-pricelist";
     }

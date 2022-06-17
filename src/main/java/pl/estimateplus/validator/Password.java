@@ -1,5 +1,7 @@
 package pl.estimateplus.validator;
 
+import pl.estimateplus.model.Messages;
+
 import javax.validation.Constraint;
 import javax.validation.Payload;
 import java.lang.annotation.ElementType;
@@ -12,7 +14,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Password {
 //    String message() default  "{password.error.message}";
-    String message() default  "Invalid password. Must contain: 1 small letter, 1 cap letter, 1 digit, 1 special char. Must be 4-15 char long.";
+    String message() default  Messages.INVALID_PASSWORD;
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
+
 }

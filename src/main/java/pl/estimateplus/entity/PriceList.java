@@ -16,6 +16,7 @@ public class PriceList {
     @OneToMany
     private List<PriceListItem> priceListItems;
     boolean userOwned;
+    private String errorMessage;
 
     public PriceList() {
     }
@@ -63,6 +64,14 @@ public class PriceList {
 
     public void setUserOwned(boolean userOwned) {
         this.userOwned = userOwned;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 
     @Override

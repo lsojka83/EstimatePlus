@@ -29,6 +29,8 @@ public class PasswordValidator implements ConstraintValidator<Password,String> {
         return verifyPassword(value);
     }
 
+
+
     static boolean verifyPassword(String passwordCandidate) {
         logger.info("!!! validating"+passwordCandidate);
         //has 4 - 15 chars
