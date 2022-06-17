@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <%@ include file="/WEB-INF/jspf/admin-header.jspf" %>
 
@@ -9,6 +10,14 @@
 </p>
 <p>
     <span>Number of items: ${priceList.numberOfItems}</span>
+</p>
+
+<p>
+    <c:if test="${!priceList.userOwned}" >
+        <form:form method="get" modelAttribute="priceList" action="/admin/deletepricelist">
+            <form:button name="deletePriseListId" value="${priceList.id}">Delete Price List</form:button>
+        </form:form>
+    </c:if>
 </p>
 
 <table border="1px">

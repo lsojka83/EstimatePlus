@@ -15,7 +15,7 @@
   <input type="submit" name="submit" value="Upload" />
 </form>
 
-<input name="columnsNames" type="checkbox"/>
+<%--<input name="columnsNames" type="checkbox"/>--%>
 
 <%--<form:form method="POST" action="/admin/uploadfile" enctype="multipart/form-data">--%>
 <%--    <table>--%>

@@ -20,7 +20,7 @@
 </p>
 
 <p>
-    2.Select estimate to edit:
+    2. Select estimate to edit:
     <p>
 
     <select name="selectedEstimate">

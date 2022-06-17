@@ -16,7 +16,6 @@ import pl.estimateplus.repository.*;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,7 +61,7 @@ public class AdminController {
 
     @GetMapping("/uploadfile")
     public String uploadFile(Model model) {
-        return "asmin-file-upload-form";
+        return "admin-file-upload-form";
     }
 
 
@@ -118,16 +117,17 @@ public class AdminController {
                             if (existingPriceList.getPriceListItems().stream()
                                     .anyMatch(pi-> pi.getReferenceNumber().equals(npi.getReferenceNumber())))
                             {
-                                logger.info("!!! P exist");
                             }
                             else
                             {
                                 priceListItemRepository.save(npi);
                                 existingPriceList.getPriceListItems().add(npi);
-                                logger.info("!!! PI not exist");
 
                             }
                         });
+
+                // TODO comment removed items from loaded PL to existing PL
+
                 existingPriceList.countItems();
                 priceListRepository.save(existingPriceList);
                 model.addAttribute("priceList",existingPriceList);
@@ -162,6 +162,26 @@ public class AdminController {
         PriceList priceList = priceListRepository.findByIdWithPriceListItems(Long.parseLong(selectedPriceListId));
         model.addAttribute("priceList", priceList);
         return "admin-show-pricelist";
+    }
+
+
+    @GetMapping("/deletepricelist")
+    public String deletePriceList(
+            @RequestParam String deletePriseListId
+    )
+    {
+//        priceListItemRepository.
+        List<PriceListItem> priceListItems = priceListRepository.findByIdWithPriceListItems(Long.parseLong(deletePriseListId)).getPriceListItems();
+        priceListRepository.deleteById(Long.parseLong(deletePriseListId));
+        //remove from all estimates, where PRI is present
+        for (PriceListItem pli : priceListItems) {
+            removeEstimateItemByPriceListItemId(pli.getId());
+        }
+        priceListItemRepository.deleteAll(priceListItems);
+        //update all estimates, where PRI is present
+        recalculateALlEstimates();
+
+        return "forward:/admin/selectpricelist";
     }
 
 
@@ -216,33 +236,14 @@ public class AdminController {
         currentPriceList.countItems();
         priceListRepository.save(currentPriceList);
 
-        //remove form all estimates, where PRI is present
-        if (estimateItemRepository.findByPriceListItemId(Long.parseLong(id)) != null) //get unempty list
-        {
+        //remove from all estimates, where PRI is present
+        removeEstimateItemByPriceListItemId(Long.parseLong(id));
 
-            List<Long> estimateItemIds = estimateItemRepository.findByPriceListItemId(Long.parseLong(id))
-                    .stream()
-                    .map(ei -> ei.getId())
-                    .collect(Collectors.toList());
-
-            estimateItemIds.stream()
-                    .forEach(eiId -> estimateItemRepository.deleteFromParentRelationTableById(eiId)); //remove from parent table
-
-            if (estimateItemRepository.findAllById(estimateItemIds).size() > 0) {
-                estimateItemIds.stream()
-                        .forEach(eiId -> estimateItemRepository.deleteById(eiId)); //remove from table
-            }
-        }
         priceListItemRepository.delete(priceListItemRepository.findById(Long.parseLong(id)).get());
 
 
         //update all estimates, where PRI is present
-        List<Estimate> allEstimates = estimateRepository.findAll();
-        for (Estimate ue : allEstimates) {
-            ue.calculateAmounts();
-            estimateRepository.save(ue);
-        }
-
+        recalculateALlEstimates();
 
         if (currentPriceList.getNumberOfItems().equals(0l))
         {
@@ -257,7 +258,6 @@ public class AdminController {
 
         return "admin-show-pricelist";
     }
-
 
     //edit admin account
     @GetMapping("/edit")
@@ -287,6 +287,37 @@ public class AdminController {
     public List<PriceListItem> findAllPriceListItems() {
         return priceListItemRepository.findAll();
     }
+
+
+    public void removeEstimateItemByPriceListItemId(Long id)
+    {
+        //remove from all estimates, where PRI is present
+        if (estimateItemRepository.findByPriceListItemId(id) != null) //get unempty list
+        {
+
+            List<Long> estimateItemIds = estimateItemRepository.findByPriceListItemId(id)
+                    .stream()
+                    .map(ei -> ei.getId())
+                    .collect(Collectors.toList());
+
+            estimateItemIds.stream()
+                    .forEach(eiId -> estimateItemRepository.deleteFromParentRelationTableById(eiId)); //remove from parent table
+
+            if (estimateItemRepository.findAllById(estimateItemIds).size() > 0) {
+                estimateItemIds.stream()
+                        .forEach(eiId -> estimateItemRepository.deleteById(eiId)); //remove from table
+            }
+        }
+    }
+
+    private void recalculateALlEstimates() {
+        List<Estimate> allEstimates = estimateRepository.findAll();
+        for (Estimate ue : allEstimates) {
+            ue.calculateAmounts();
+            estimateRepository.save(ue);
+        }
+    }
+
 
 
 }

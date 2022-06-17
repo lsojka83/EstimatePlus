@@ -25,7 +25,7 @@
         <th>unit</th>
         <th>baseVatRate</th>
         <th>addedOn</th>
-        <c:if test="${isUserPricelist =='true'}">
+        <c:if test="${priceList.userOwned}">
             <th>Actions</th>
         </c:if>
     </tr>
@@ -43,7 +43,7 @@
             <td>${priceListItem.unit}</td>
             <td>${priceListItem.baseVatRate}</td>
             <td>${priceListItem.addedOn}</td>
-            <c:if test="${isUserPricelist =='true'}">
+            <c:if test="${priceList.userOwned}">
 
             <td>
                 <a href="/user/edititem?id=${priceListItem.id}">Edit</a>

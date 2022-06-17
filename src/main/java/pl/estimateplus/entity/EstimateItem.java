@@ -14,7 +14,6 @@ public class EstimateItem {
     private Long id;
     @Min(0)
     private int individualVatRate;
-//    private BigInteger vatAmount;
     private BigDecimal totalNetPrice;
     @Min(1)
     private int quantity;

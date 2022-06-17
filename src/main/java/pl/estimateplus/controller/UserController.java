@@ -364,7 +364,7 @@ public class UserController {
             return "user-add-item-form";
         }
         priceListItemRepository.save(priceListItem);
-        model.addAttribute("userPriceList", priceListRepository.findByIdWithPriceListItems(
+        model.addAttribute("priceList", priceListRepository.findByIdWithPriceListItems(
                         userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
                 )
         );

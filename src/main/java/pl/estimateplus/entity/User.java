@@ -1,8 +1,12 @@
 package pl.estimateplus.entity;
 
+import pl.estimateplus.validator.Password;
+
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.groups.Default;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,11 +16,13 @@ public class User {
     @Id
     @GeneratedValue (strategy= GenerationType.IDENTITY)
     private Long id;
-    @NotBlank
+    @NotBlank (groups = Default.class)
     private String userName;
+    @NotBlank
+    @NotNull
     @Email
     private String email;
-    @NotBlank
+    @Password //own validator
     private String password;
     private boolean admin;
 //    @OneToMany (fetch = FetchType.EAGER)

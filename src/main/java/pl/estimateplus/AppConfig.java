@@ -15,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import pl.estimateplus.validator.PasswordValidator;
 
 import javax.validation.Validator;
 import java.util.Locale;
@@ -46,6 +47,12 @@ public class AppConfig implements WebMvcConfigurer{
     @Bean
     public Validator validator() {
         return new LocalValidatorFactoryBean();
+    }
+
+    @Bean
+    public PasswordValidator passwordValidator()
+    {
+        return new PasswordValidator();
     }
 
     @Bean(name = "multipartResolver")
