@@ -7,7 +7,7 @@
 
 <main>
     <div class="container-fluid px-4">
-        <h1 class="mt-4">Choose a pricelist to show:</h1>
+        <h1 class="mt-4">Choose pricelist</h1>
         <ol class="breadcrumb mb-4">
         </ol>
         <div class="row">

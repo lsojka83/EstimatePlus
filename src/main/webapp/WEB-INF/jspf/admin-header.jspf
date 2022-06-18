@@ -54,11 +54,11 @@
                     <div class="sb-sidenav-menu-heading">Price List</div>
                     <a class="nav-link" href="/admin/uploadfile">
                         <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                        Add/update
+                        Import from excel file
                     </a>
                     <a class="nav-link" href="/admin/selectpricelist">
                         <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
-                        View/edit
+                        View and edit pricelist
                     </a>
                 </div>
             </div>

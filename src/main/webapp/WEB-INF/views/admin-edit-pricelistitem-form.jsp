@@ -16,76 +16,48 @@
 
                     <form:form method="post" modelAttribute="priceListItem">
 
-                      <div class="row mb-3">
-                        <div class="col-md-6">
                           <div class="form-floating mb-3 mb-md-0">
                             <form:input path="referenceNumber" id="referenceNumber"
                                         type="text" cssClass="form-control"></form:input>
                             <form:errors path="referenceNumber"/>
                             <label for="referenceNumber">Reference number</label>
-                          </div>
-                        </div>
                       </div>
 
-                      <div class="row mb-3">
-                        <div class="col-md-6">
                           <div class="form-floating mb-3">
                             <form:input path="description" id="description"
                                         type="text" cssClass="form-control"></form:input>
                             <form:errors path="description"/>
                             <label for="description">Description</label>
-                          </div>
-                        </div>
                       </div>
-                      <div class="row mb-3">
-                        <div class="col-md-6">
                           <div class="form-floating mb-3">
                             <form:input path="brand" id="brand" type="text" cssClass="form-control"></form:input>
                             <form:errors path="brand"/>
                             <label for="brand">Brand</label>
-                          </div>
-                        </div>
                       </div>
-                      <div class="row mb-3">
-                        <div class="col-md-6">
                           <div class="form-floating mb-3">
                             <form:input path="comment" id="comment"
                                         type="text" cssClass="form-control"></form:input>
                             <form:errors path="comment"/>
                             <label for="comment">Comment</label>
-                          </div>
-                        </div>
                       </div>
-                      <div class="row mb-3">
-                        <div class="col-md-6">
                           <div class="form-floating mb-3">
                             <form:input path="unitNetPrice" id="unitNetPrice"
                                         type="number" cssClass="form-control"></form:input>
                             <form:errors path="unitNetPrice"/>
                             <label for="unitNetPrice">Unit price</label>
-                          </div>
-                        </div>
                       </div>
 
-                      <div class="row mb-3">
-                        <div class="col-md-6">
                           <div class="form-floating mb-3">
                             <form:input path="unit" id="unit" type="text" cssClass="form-control"/>
                             <form:errors path="unit"/>
                             <label for="unit">Unit</label>
-                          </div>
-                        </div>
                       </div>
-                      <div class="row mb-3">
-                        <div class="col-md-6">
                           <div class="form-floating mb-3">
                             <form:input path="baseVatRate" id="baseVatRate"
                                         type="number" cssClass="form-control"></form:input>
                             <form:errors path="baseVatRate"/>
                             <label for="baseVatRate">VAT</label>
 
-                          </div>
-                        </div>
                       </div>
 
                       <div>

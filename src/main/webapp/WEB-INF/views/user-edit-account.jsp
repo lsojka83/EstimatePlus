@@ -8,9 +8,7 @@
 <%@ include file="/WEB-INF/jspf/user-header.jspf" %>
 
 <main>
-    <div class="container-fluid px-4 bg-primary">
-
-
+    <div class="container-fluid px-4">
         <div id="layoutAuthentication">
             <div id="layoutAuthentication_content">
                 <main>
@@ -23,29 +21,19 @@
                                     <div class="card-body">
 
                                         <form:form method="post" modelAttribute="user">
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
                                                 <div class="form-floating mb-3 mb-md-0">
                                                     <form:input path="userName" id="userName"
                                                                 type="text" cssClass="form-control"></form:input>
                                                     <label for="userName">User name</label>
                                                     <form:errors path="userName"/>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
                                                 <div class="form-floating mb-3">
                                                     <form:input path="email" id="email" type="text"  cssClass="form-control"></form:input>
                                                     <label for="email">Email</label>
                                                     <form:errors path="email"/>
 
                                                 </div>
-                                            </div>
-                                        </div>
 
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
                                                 <div class="form-floating mb-3 mb-md-0">
                                                     <form:input path="password" id="password" element="div" type="password" cssClass="form-control"></form:input>
                                                     <form:errors path="password" cssClass="form-control"/>
@@ -53,10 +41,7 @@
                                                     <c:if test="${not empty invalidPassword}">
                                                         ${invalidPassword}
                                                     </c:if>
-
                                                 </div>
-                                            </div>
-                                        </div>
 
                                         <form:hidden path="admin"></form:hidden>
 

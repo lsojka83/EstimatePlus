@@ -5,7 +5,7 @@
 
 <main>
     <div class="container-fluid px-4">
-        <h1 class="mt-4">Pricelist upload from excel file</h1>
+        <h1 class="mt-4">Import pricelist from excel file</h1>
         <ol class="breadcrumb mb-4">
         </ol>
         <div class="row">

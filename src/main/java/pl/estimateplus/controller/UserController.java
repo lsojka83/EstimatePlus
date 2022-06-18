@@ -48,6 +48,7 @@ public class UserController {
     private final EstimateItemRepository estimateItemRepository;
     private final PasswordValidator passwordValidator;
     private final Validator validator;
+    private boolean estimateChanged = false;
 
 
     public UserController(PriceListRepository priceListRepository,
@@ -233,6 +234,8 @@ public class UserController {
                 user.getEstimates().add(estimate);
                 userRepository.save(user);
             }
+
+            model.addAttribute("estimateChanged", false);
         }
 
 
@@ -315,6 +318,8 @@ public class UserController {
                     logger.warn(e.getMessage());
                 }
             }
+            model.addAttribute("estimateChanged", true);
+
         }
 
 
@@ -516,6 +521,7 @@ public class UserController {
         estimate.getEstimateItems().add(i, estimateItem);
         estimate.calculateAmounts();
         model.addAttribute("estimate", estimate);
+        model.addAttribute("estimateChanged", true);
         return "estimate-form";
     }
 
@@ -543,6 +549,7 @@ public class UserController {
 
         estimate.calculateAmounts();
         model.addAttribute("estimate", estimate);
+        model.addAttribute("estimateChanged", true);
         return "estimate-form";
     }
 

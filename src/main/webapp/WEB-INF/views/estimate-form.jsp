@@ -63,14 +63,14 @@
                 </table>
                 <div class="row">
                     <div class="col-xl-3 col-md-6">
+                        <c:if test="${estimateChanged}">
                         <div class="card bg-danger text-white mb-4">
-                            <div class="card-body">Remember to save estimate!</div>
-
+                            <div class="card-body">Estimate not saved! Click "Save estimate to DB" to save. </div>
                         </div>
+                        </c:if>
                     </div>
                     <div class="col-xl-3 col-md-6">
                     </div>
-
 
                 <div class="col-xl-3 col-md-6 align-items-end">
                     <div class="card bg-success text-white mb-4">
