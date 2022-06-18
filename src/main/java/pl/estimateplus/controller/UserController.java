@@ -162,7 +162,7 @@ public class UserController {
                                    @RequestParam(required = false) String priceListItemId,
                                    HttpSession httpSession,
 //                                   @Valid @ModelAttribute("estimate")Estimate estimate,
-                                   @Valid Estimate estimate,
+                                   @Valid @ModelAttribute("estimate") Estimate estimate,
                                    BindingResult result,
                                    @RequestParam(required = false) Long estimateId,
                                    HttpServletRequest request,
@@ -175,28 +175,17 @@ public class UserController {
             estimate.calculateAmounts();
         }
 
-
 //        logger.info("this is a info message");
 //        logger.warn("this is a warn message");
 //        logger.error("this is a error message");
 
-//        System.out.println("!!!!" + estimate.getId());
-//        System.out.println("!!!!estimateIdModel1" + request.getAttribute("estimateIdModel1"));
-//        System.out.println("!!!!estimateId" + request.getAttribute("estimateId"));
-//        System.out.println("!!!!estimateId" + estimateId);
-//        System.out.println("!!!!estimate" + model.getAttribute("estimate"));
-//        System.out.println("!!!!searchedItem" + request.getAttribute("searchedItem"));
-//        System.out.println("!!!!button"+ request.getAttribute("button"));
 
         //Save estimate
         logger.info("!!!!Save-start" + estimate);
         if (button != null && button.equals("save")) {
-//            if (result.hasErrors()) {
-//                return "estimate-form";
-//            }
-//            estimate.setName();
-            //???
-//            estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
+            if (result.hasErrors()) {
+                return "estimate-form";
+            }
 
             estimate.setEstimateItems(estimate.getEstimateItems());
             if (estimate.getEstimateItems().stream().toList().stream().filter(ei -> ei.getId() == null).count() > 0)  //adds not save eis to current estimateitem list
@@ -291,12 +280,13 @@ public class UserController {
                         .collect(Collectors.toList())
                         .contains(priceListItem.getId())) {
                     List<EstimateItem> estimateItems = estimate.getEstimateItems();
-                    for (EstimateItem e : estimateItems) {
-                        if (e.getPriceListItem().getId().equals(priceListItem.getId())) {
-                            e.setQuantity(e.getQuantity() + 1);
-                            e.setTotalNetPrice(e.getPriceListItem()
-                                    .getUnitNetPrice().multiply(BigDecimal.valueOf(e.getQuantity())));
-                            estimateItems.set(estimateItems.indexOf(e), e);
+                    for (EstimateItem ei : estimateItems) {
+                        if (ei.getPriceListItem().getId().equals(priceListItem.getId())) {
+                            ei.setQuantity(ei.getQuantity() + 1);
+//                            ei.setTotalNetPrice(ei.getPriceListItem()
+//                                    .getUnitNetPrice().multiply(BigDecimal.valueOf(ie.getQuantity())));
+                            ei.calculateAmounts(ei.getQuantity());
+                            estimateItems.set(estimateItems.indexOf(ei), ei);
                         }
                     }
                     estimate.setEstimateItems(estimateItems);
@@ -484,8 +474,8 @@ public class UserController {
     ) {
 
         Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
-        logger.info("!!! " + piId);
-        logger.info("!!! " + estimate);
+//        logger.info("!!! " + piId);
+//        logger.info("!!! " + estimate);
 
         model.addAttribute("estimateItem", estimate.getEstimateItems()
                 .stream()

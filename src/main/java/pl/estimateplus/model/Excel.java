@@ -209,14 +209,16 @@ public class Excel {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         Sheet sheet = workbook.createSheet(estimate.getName());
-        sheet.setColumnWidth(0,5000); //referenceNumber
-        sheet.setColumnWidth(1,15000); //description
-        sheet.setColumnWidth(2,5000); //brand
-        sheet.setColumnWidth(3,5000); //unitNetPrice
-        sheet.setColumnWidth(4,3000); //unit
-        sheet.setColumnWidth(5,2000); //individualVatRate
-        sheet.setColumnWidth(6,2000); //quantity
-        sheet.setColumnWidth(7,15000); //comment
+        sheet.setColumnWidth(0,1000); //se. no.
+        sheet.setColumnWidth(1,4000); //referenceNumber
+        sheet.setColumnWidth(2,15000); //description
+        sheet.setColumnWidth(3,4000); //brand
+        sheet.setColumnWidth(4,4000); //unitNetPrice
+        sheet.setColumnWidth(5,2000); //quantity
+        sheet.setColumnWidth(6,4000); //unit
+        sheet.setColumnWidth(7,4000); //total net price
+        sheet.setColumnWidth(8,2000); //individualVatRate
+        sheet.setColumnWidth(9,15000); //comment
 
         Row header = sheet.createRow(0);
 
@@ -226,40 +228,48 @@ public class Excel {
 
         XSSFFont font = ((XSSFWorkbook) workbook).createFont();
         font.setFontName("Arial");
-        font.setFontHeightInPoints((short) 16);
+        font.setFontHeightInPoints((short) 12);
         font.setBold(true);
         headerStyle.setFont(font);
 
         Cell headerCell = header.createCell(0);
-        headerCell.setCellValue("referenceNumber");
+        headerCell.setCellValue("#");
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(1);
-        headerCell.setCellValue("description");
+        headerCell.setCellValue("Reference Number");
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(2);
-        headerCell.setCellValue("brand");
+        headerCell.setCellValue("Description");
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(3);
-        headerCell.setCellValue("unitNetPrice");
+        headerCell.setCellValue("Brand");
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(4);
-        headerCell.setCellValue("unit");
+        headerCell.setCellValue("Unit Net Price");
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(5);
-        headerCell.setCellValue("individualVatRate");
+        headerCell.setCellValue("Quantity");
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(6);
-        headerCell.setCellValue("quantity");
+        headerCell.setCellValue("Unit");
         headerCell.setCellStyle(headerStyle);
 
         headerCell = header.createCell(7);
-        headerCell.setCellValue("comment");
+        headerCell.setCellValue("Total price");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(8);
+        headerCell.setCellValue("Vat Rate");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(9);
+        headerCell.setCellValue("Comment");
         headerCell.setCellStyle(headerStyle);
 
 
@@ -270,35 +280,44 @@ public class Excel {
         for(EstimateItem ei: estimate.getEstimateItems())
         {
             Row row = sheet.createRow(rowIndex);
+
             Cell cell = row.createCell(0);
-            cell.setCellValue(ei.getPriceListItem().getReferenceNumber());
+            cell.setCellValue(rowIndex);
             cell.setCellStyle(style);
 
             cell = row.createCell(1);
-            cell.setCellValue(ei.getPriceListItem().getDescription());
+            cell.setCellValue(ei.getPriceListItem().getReferenceNumber());
             cell.setCellStyle(style);
 
             cell = row.createCell(2);
-            cell.setCellValue(ei.getPriceListItem().getBrand());
+            cell.setCellValue(ei.getPriceListItem().getDescription());
             cell.setCellStyle(style);
 
             cell = row.createCell(3);
-            cell.setCellValue(ei.getPriceListItem().getUnitNetPrice().doubleValue());
+            cell.setCellValue(ei.getPriceListItem().getBrand());
             cell.setCellStyle(style);
 
             cell = row.createCell(4);
-            cell.setCellValue(ei.getPriceListItem().getUnit());
+            cell.setCellValue(ei.getPriceListItem().getUnitNetPrice().doubleValue());
             cell.setCellStyle(style);
 
             cell = row.createCell(5);
-            cell.setCellValue(ei.getIndividualVatRate());
-            cell.setCellStyle(style);
-
-            cell = row.createCell(6);
             cell.setCellValue(ei.getQuantity());
             cell.setCellStyle(style);
 
+            cell = row.createCell(6);
+            cell.setCellValue(ei.getPriceListItem().getUnit());
+            cell.setCellStyle(style);
+
             cell = row.createCell(7);
+            cell.setCellValue(ei.getTotalNetPrice().doubleValue());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(8);
+            cell.setCellValue(ei.getIndividualVatRate());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(9);
             cell.setCellValue(ei.getPriceListItem().getComment());
             cell.setCellStyle(style);
 
@@ -309,31 +328,31 @@ public class Excel {
 
 
         Row row = sheet.createRow(rowIndex);
-        Cell cell = row.createCell(2);
+        Cell cell = row.createCell(6);
         cell.setCellValue("TotalNetAmount");
         cell.setCellStyle(style);
 
-        cell = row.createCell(3);
+        cell = row.createCell(7);
         cell.setCellValue(estimate.getTotalNetAmount().doubleValue());
         cell.setCellStyle(style);
 
         rowIndex++;
         row = sheet.createRow(rowIndex);
-        cell = row.createCell(2);
+        cell = row.createCell(6);
         cell.setCellValue("TotalVatAmount");
         cell.setCellStyle(style);
 
-        cell = row.createCell(3);
+        cell = row.createCell(7);
         cell.setCellValue(estimate.getTotalVatAmount().floatValue());
         cell.setCellStyle(style);
 
         rowIndex++;
         row = sheet.createRow(rowIndex);
-        cell = row.createCell(2);
+        cell = row.createCell(6);
         cell.setCellValue("TotalGrossAmount");
         cell.setCellStyle(style);
 
-        cell = row.createCell(3);
+        cell = row.createCell(7);
         cell.setCellValue(estimate.getTotalGrossAmount().floatValue());
         cell.setCellStyle(style);
 

@@ -19,12 +19,12 @@
         <th>Reference Number</th>
         <th>Description</th>
         <th>Brand</th>
-        <th>Comment</th>
         <th>Unit Net Price</th>
-        <th>Unit</th>
-        <th>Vat Rate</th>
         <th>Quantity</th>
-<%--        <th>Price</th>--%>
+        <th>Unit</th>
+        <th>Total price</th>
+        <th>Vat Rate</th>
+        <th>Comment</th>
         <th>Actions</th>
 
     </tr>
@@ -36,12 +36,12 @@
             <td>${estimateItem.priceListItem.referenceNumber}</td>
             <td>${estimateItem.priceListItem.description}</td>
             <td>${estimateItem.priceListItem.brand}</td>
-            <td>${estimateItem.priceListItem.comment}</td>
             <td>${estimateItem.priceListItem.unitNetPrice}</td>
-            <td>${estimateItem.priceListItem.unit}</td>
-            <td>${estimateItem.individualVatRate}</td>
             <td>${estimateItem.quantity}</td>
-<%--            <td>${estimateItem.price}</td>--%>
+            <td>${estimateItem.priceListItem.unit}</td>
+            <td>${estimateItem.totalNetPrice}</td>
+            <td>${estimateItem.individualVatRate}</td>
+            <td>${estimateItem.priceListItem.comment}</td>
             <td>
                 <a href="/user/editestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}&refNo=${estimateItem.priceListItem.referenceNumber}&estimateId=${estimate.id}">Edit</a>
                 <a href="/user/deleteestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}&refNo=${estimateItem.priceListItem.referenceNumber}&estimateId=${estimate.id}">Delete</a>
@@ -85,11 +85,11 @@
     <input value="" name="searchedItemReferenceNumber" type="text"/>
     <input name="estimateId" value="${estimate.id}" hidden>
     <button name="button" value="findPriceListItem" type="submit">Search</button>
-</form>
+<%--</form>--%>
 </p>
 
 <p>
-<form method="post" action="/user/estimateform" name="post">
+<%--<form method="post" action="/user/estimateform" name="post">--%>
 <p>
 <table border="1px">
     <thead>
@@ -139,14 +139,7 @@
     <button name="button" value="addEstimateItem" type="submit">Add item</button>
 </form>
 </p>
-
-
-
-
 </p>
-
-
-
 
 </body>
 </html>
