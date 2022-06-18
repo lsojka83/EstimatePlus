@@ -3,31 +3,26 @@
 
 <%@ include file="/WEB-INF/jspf/admin-header.jspf" %>
 
-<html>
-<head>
-    <title>Upload file</title>
-</head>
-<body>
+<main>
+    <div class="container-fluid px-4">
+        <h1 class="mt-4">Pricelist upload from excel file</h1>
+        <ol class="breadcrumb mb-4">
+        </ol>
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-primary text-white mb-4">
+                    <div class="card-body">
+                        <form name="fileUpload" method="POST" action="/admin/uploadfile" enctype="multipart/form-data">
+                            <label>Select File</label> <br />
+                            <input type="file" name="file" class="btn btn-warning"/>
+                            <input type="submit" name="submit" value="Upload" class="btn btn-success"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row"></div>
+    </div>
+</main>
 
-<form name="fileUpload" method="POST" action="/admin/uploadfile" enctype="multipart/form-data">
-  <label>Select File</label> <br />
-  <input type="file" name="file" />
-  <input type="submit" name="submit" value="Upload" />
-</form>
-
-<%--<input name="columnsNames" type="checkbox"/>--%>
-
-<%--<form:form method="POST" action="/admin/uploadfile" enctype="multipart/form-data">--%>
-<%--    <table>--%>
-<%--        <tr>--%>
-<%--            <td><form:label path="file">Select a file to upload</form:label></td>--%>
-<%--            <td><input type="file" name="file"/></td>--%>
-<%--        </tr>--%>
-<%--        <tr>--%>
-<%--            <td><input type="submit" value="Submit"/></td>--%>
-<%--        </tr>--%>
-<%--    </table>--%>
-<%--</form:form>--%>
-
-</body>
-</html>
+<%@ include file="/WEB-INF/jspf/common-footer.jspf" %>

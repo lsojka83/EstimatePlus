@@ -78,59 +78,53 @@ public class AdminController {
         if (file.getContentType().equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
             PriceList existingPriceList;
             priceList = Excel.importExcelData(file);
-            if(priceList.getErrorMessage()!=null)
-            {
-                model.addAttribute("error",priceList.getErrorMessage());
+            if (priceList.getErrorMessage() != null) {
+                model.addAttribute("error", priceList.getErrorMessage());
                 return "file-upload-view";
             }
-            if(priceListRepository.findByName(priceList.getName())!= null)
-            {
+            if (priceListRepository.findByName(priceList.getName()) != null) {
 //                logger.info("!!!price list exists");
 
-               existingPriceList =  priceListRepository.findByName(priceList.getName());
+                existingPriceList = priceListRepository.findByName(priceList.getName());
 //               logger.info("!!!"+existingPriceList.getPriceListItems());
-               logger.info("!!!"+priceList.getPriceListItems());
+                logger.info("!!!" + priceList.getPriceListItems());
 
                 existingPriceList.getPriceListItems().stream() //updated existing PLIs with elements from loaded PL
-                                .forEach(pi->
-                                {
-                                    if (priceList.getPriceListItems().stream()
-                                            .filter(npi -> npi.getReferenceNumber()
-                                                    .equals(pi.getReferenceNumber()))
-                                            .collect(Collectors.toList()) != null
+                        .forEach(pi ->
+                        {
+                            if (priceList.getPriceListItems().stream()
+                                    .filter(npi -> npi.getReferenceNumber()
+                                            .equals(pi.getReferenceNumber()))
+                                    .collect(Collectors.toList()) != null
                                     &&
-                                            priceList.getPriceListItems().stream()
-                                                    .filter(npi -> npi.getReferenceNumber()
-                                                            .equals(pi.getReferenceNumber()))
-                                                    .collect(Collectors.toList()).size() >0
-                                    )
-                                    {
-                                        if (priceList.getPriceListItems().stream()
+                                    priceList.getPriceListItems().stream()
                                             .filter(npi -> npi.getReferenceNumber()
                                                     .equals(pi.getReferenceNumber()))
-                                            .collect(Collectors.toList()).get(0) != null) {
-                                        PriceListItem newPLI = priceList.getPriceListItems().stream()
-                                                .filter(npi -> npi.getReferenceNumber().equals(pi.getReferenceNumber())).collect(Collectors.toList()).get(0);
-                                        pi.setVendorName(newPLI.getVendorName());
-                                        pi.setDescription(newPLI.getDescription());
-                                        pi.setBrand(newPLI.getBrand());
-                                        pi.setComment(newPLI.getComment());
-                                        pi.setUnitNetPrice(newPLI.getUnitNetPrice());
-                                        pi.setUnit(newPLI.getUnit());
-                                        pi.setBaseVatRate(newPLI.getBaseVatRate());
-                                        priceListItemRepository.save(pi);
-                                    }
+                                            .collect(Collectors.toList()).size() > 0
+                            ) {
+                                if (priceList.getPriceListItems().stream()
+                                        .filter(npi -> npi.getReferenceNumber()
+                                                .equals(pi.getReferenceNumber()))
+                                        .collect(Collectors.toList()).get(0) != null) {
+                                    PriceListItem newPLI = priceList.getPriceListItems().stream()
+                                            .filter(npi -> npi.getReferenceNumber().equals(pi.getReferenceNumber())).collect(Collectors.toList()).get(0);
+                                    pi.setVendorName(newPLI.getVendorName());
+                                    pi.setDescription(newPLI.getDescription());
+                                    pi.setBrand(newPLI.getBrand());
+                                    pi.setComment(newPLI.getComment());
+                                    pi.setUnitNetPrice(newPLI.getUnitNetPrice());
+                                    pi.setUnit(newPLI.getUnit());
+                                    pi.setBaseVatRate(newPLI.getBaseVatRate());
+                                    priceListItemRepository.save(pi);
                                 }
-                                });
+                            }
+                        });
                 priceList.getPriceListItems().stream() // add new items from loaded PL to existing PL
-                        .forEach(npi->
+                        .forEach(npi ->
                         {
                             if (existingPriceList.getPriceListItems().stream()
-                                    .anyMatch(pi-> pi.getReferenceNumber().equals(npi.getReferenceNumber())))
-                            {
-                            }
-                            else
-                            {
+                                    .anyMatch(pi -> pi.getReferenceNumber().equals(npi.getReferenceNumber()))) {
+                            } else {
                                 priceListItemRepository.save(npi);
                                 existingPriceList.getPriceListItems().add(npi);
 
@@ -141,15 +135,14 @@ public class AdminController {
 
                 existingPriceList.countItems();
                 priceListRepository.save(existingPriceList);
-                model.addAttribute("priceList",existingPriceList);
-            }
-            else{
-                priceList.getPriceListItems().stream().forEach(pi->priceListItemRepository.save(pi));
+                model.addAttribute("priceList", existingPriceList);
+            } else {
+                priceList.getPriceListItems().stream().forEach(pi -> priceListItemRepository.save(pi));
                 priceListRepository.save(priceList);
 
-                model.addAttribute("priceList",priceList);
+                model.addAttribute("priceList", priceList);
             }
-                return "admin-show-pricelist";
+            return "admin-show-pricelist";
 
         }
         model.addAttribute("file", file);
@@ -179,8 +172,7 @@ public class AdminController {
     @GetMapping("/deletepricelist")
     public String deletePriceList(
             @RequestParam String deletePriseListId
-    )
-    {
+    ) {
 //        priceListItemRepository.
         List<PriceListItem> priceListItems = priceListRepository.findByIdWithPriceListItems(Long.parseLong(deletePriseListId)).getPriceListItems();
         priceListRepository.deleteById(Long.parseLong(deletePriseListId));
@@ -252,21 +244,17 @@ public class AdminController {
 
         priceListItemRepository.delete(priceListItemRepository.findById(Long.parseLong(id)).get());
 
-
         //update all estimates, where PRI is present
         recalculateALlEstimates();
 
-        if (currentPriceList.getNumberOfItems().equals(0l))
-        {
-            if(!currentPriceList.isUserOwned()) {
+        if (currentPriceList.getNumberOfItems().equals(0l)) {
+            if (!currentPriceList.isUserOwned()) {
                 currentPriceList = priceListRepository.findById(currentPriceList.getId()).get();
                 priceListRepository.delete(currentPriceList);
                 return "forward:/admin/selectpricelist";
             }
-
         }
         model.addAttribute("priceList", currentPriceList);
-
         return "admin-show-pricelist";
     }
 
@@ -275,7 +263,8 @@ public class AdminController {
     public String editAdmin(HttpSession httpSession,
                             Model model
     ) {
-        model.addAttribute("user", httpSession.getAttribute("user"));
+
+        model.addAttribute("user", userRepository.findById(((User) httpSession.getAttribute("user")).getId()).get());
         return "admin-edit-account";
     }
 
@@ -285,12 +274,15 @@ public class AdminController {
             BindingResult results,
             Model model
     ) {
-        if(!passwordValidator.isValid(user.getPassword(), null) || results.hasErrors())
-        {
-            if(!passwordValidator.isValid(user.getPassword(),null))
-            {
+        if (!user.getPassword().equals(userRepository.findById(user.getId()).get().getPassword()))
+            if (!passwordValidator.isValid(user.getPassword(), null)) {
                 model.addAttribute("invalidPassword", Messages.INVALID_PASSWORD);
             }
+
+        if (results.hasErrors()) {
+            return "admin-edit-account";
+        }
+        if(model.getAttribute("invalidPassword") != null) {
             return "admin-edit-account";
         }
         user.setPasswordUnhashed(user.getPassword());
@@ -307,8 +299,7 @@ public class AdminController {
     }
 
 
-    public void removeEstimateItemByPriceListItemId(Long id)
-    {
+    public void removeEstimateItemByPriceListItemId(Long id) {
         //remove from all estimates, where PRI is present
         if (estimateItemRepository.findByPriceListItemId(id) != null) //get unempty list
         {
@@ -335,7 +326,6 @@ public class AdminController {
             estimateRepository.save(ue);
         }
     }
-
 
 
 }

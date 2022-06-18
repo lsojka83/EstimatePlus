@@ -83,7 +83,7 @@ public class UserController {
     public String editUser(HttpSession httpSession,
                            Model model
     ) {
-        model.addAttribute("user", httpSession.getAttribute("user"));
+        model.addAttribute("user", userRepository.findById(((User) httpSession.getAttribute("user")).getId()).get());
         return "user-edit-account";
     }
 
@@ -94,12 +94,18 @@ public class UserController {
             Model model
     ) {
 
-        if (!passwordValidator.isValid(user.getPassword(), null) || results.hasErrors()) {
+        if (!user.getPassword().equals(userRepository.findById(user.getId()).get().getPassword()))
             if (!passwordValidator.isValid(user.getPassword(), null)) {
                 model.addAttribute("invalidPassword", Messages.INVALID_PASSWORD);
             }
+
+        if (results.hasErrors()) {
+                    return "user-edit-account";
+        }
+        if(model.getAttribute("invalidPassword") != null) {
             return "user-edit-account";
         }
+
         user.setPasswordUnhashed(user.getPassword());
         user.setPassword(Security.hashPassword(user.getPassword()));
         userRepository.save(user);
@@ -260,7 +266,6 @@ public class UserController {
 
 
         //Find price list item on user pricelist and all general pricelists
-
         if (button != null && button.equals("findPriceListItem")) {
             if (!priceListItemRepository.findAllByUserIdAndReferenceNumber(user.getId(), searchedItemReferenceNumber).isEmpty()) {
                 model.addAttribute("searchResult",
@@ -425,7 +430,6 @@ public class UserController {
     ) {
 
         User user = (User) httpSession.getAttribute("user");
-
         PriceList userPR = priceListRepository.findByIdWithPriceListItems(
                 userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId());
         userPR.getPriceListItems().removeIf(i -> i.getId() == Long.parseLong(id));

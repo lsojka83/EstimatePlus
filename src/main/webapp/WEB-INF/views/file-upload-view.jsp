@@ -1,9 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
-<head>
-    <title>View file</title>
-</head>
-<body>
+<%@ include file="/WEB-INF/jspf/admin-header.jspf" %>
 
 <h2>Submitted File</h2>
 <table>
@@ -15,7 +11,12 @@
     <td>Type:</td>
     <td>${file.contentType}</td>
   </tr>
+  <tr>
+    <td>Error:</td>
+    <td>${error}
+    </td>
+  </tr>
 </table>
-${error}
-</body>
-</html>
+
+<%@ include file="/WEB-INF/jspf/common-footer.jspf" %>
+
