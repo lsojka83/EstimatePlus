@@ -70,7 +70,8 @@
                                 <td>
                                     <a href="/user/edititem?id=${priceListItem.id}&priceListId=${priceList.id}">Edit</a>
                                     <a href="/user/deleteitem?id=${priceListItem.id}&priceListId=${priceList.id}">Delete</a>
-                                </td>        </c:if>
+                                </td>
+                            </c:if>
 
                         </tr>
                     </c:forEach>

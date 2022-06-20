@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Entity
@@ -55,8 +56,21 @@ public class Estimate {
             this.totalVatAmount = BigDecimal.valueOf(0);
             this.numberOfItems = 0l;
         }
+    }
 
+    public void sortItemsByPosition()
+    {
+        this.estimateItems.sort(Comparator.comparing(EstimateItem::getPositionInEstimate));
+    }
 
+    public void renumberItemsPositions()
+    {
+        int i = 1;
+        for (EstimateItem ei : this.estimateItems)
+        {
+            ei.setPositionInEstimate(i);
+            i++;
+        }
     }
 
 

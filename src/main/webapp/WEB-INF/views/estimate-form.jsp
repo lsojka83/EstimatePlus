@@ -1,3 +1,9 @@
+<%@ page import="java.util.Collections" %>
+<%@ page import="pl.estimateplus.entity.EstimateItem" %>
+<%@ page import="java.util.Comparator" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.springframework.ui.Model" %>
+<%@ page import="pl.estimateplus.entity.Estimate" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
@@ -26,6 +32,7 @@
                     <thead>
                     <tr>
                         <th>Id</th>
+                        <th>#</th>
                         <th>Reference Number</th>
                         <th>Description</th>
                         <th>Brand</th>
@@ -39,9 +46,16 @@
                     </tr>
                     </thead>
                     <tbody>
+<%--                    <%--%>
+<%--                        List list = ((Estimate) model.getAttribute("estimate")).getEstimateItems();--%>
+<%--                        list.sort(Comparator.comparing(EstimateItem::getPositionInEstimate));--%>
+<%--                        model.setAttribute("estimate",list);--%>
+<%--                    %>--%>
+<%--                    <c:forEach var="estimateItem" items="${estimate.estimateItems}">--%>
                     <c:forEach var="estimateItem" items="${estimate.estimateItems}">
                         <tr>
                             <td>${estimateItem.id}</td>
+                            <td>${estimateItem.positionInEstimate}</td>
                             <td>${estimateItem.priceListItem.referenceNumber}</td>
                             <td>${estimateItem.priceListItem.description}</td>
                             <td>${estimateItem.priceListItem.brand}</td>
@@ -56,6 +70,10 @@
                                    class="btn btn-warning">Edit</a>
                                 <a href="/user/deleteestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}&refNo=${estimateItem.priceListItem.referenceNumber}&estimateId=${estimate.id}"
                                    class="btn btn-danger">Delete</a>
+                                <a href="/user/moveupestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}"
+                                   class="btn btn-success">Move up</a>
+                                <a href="/user/movedownestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}"
+                                   class="btn btn-success">Move down</a>
                             </td>
                         </tr>
                     </c:forEach>

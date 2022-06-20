@@ -27,9 +27,7 @@ import javax.validation.Validator;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -101,9 +99,9 @@ public class UserController {
             }
 
         if (results.hasErrors()) {
-                    return "user-edit-account";
+            return "user-edit-account";
         }
-        if(model.getAttribute("invalidPassword") != null) {
+        if (model.getAttribute("invalidPassword") != null) {
             return "user-edit-account";
         }
 
@@ -144,7 +142,10 @@ public class UserController {
         if (button != null && button.equals("Edit")) {
 
             if (selectedEstimate != null) {
-                model.addAttribute("estimate", estimateRepository.findByName(selectedEstimate));
+
+                Estimate estimate = estimateRepository.findByName(selectedEstimate);
+                estimate.sortItemsByPosition();
+                model.addAttribute("estimate", estimate);
             } else {
                 model.addAttribute("estimate", new Estimate());
             }
@@ -156,9 +157,11 @@ public class UserController {
     public String showEstimateForm1(Model model,
                                     @RequestParam(required = false) Long estimateId
     ) {
-        model.addAttribute("estimate", estimateRepository.findById(estimateId).get());
-        model.addAttribute("excelFile", Excel.getExcelWorkbook(estimateRepository.findById(estimateId).get()));
-        logger.info("!!!!" + estimateRepository.findById(estimateId).get());
+        Estimate estimate = estimateRepository.findById(estimateId).get();
+        estimate.sortItemsByPosition();
+        model.addAttribute("estimate", estimate);
+        model.addAttribute("excelFile", Excel.getExcelWorkbook(estimate));
+        logger.info("!!!!" + estimate);
         return "estimate-form";
     }
 
@@ -176,7 +179,6 @@ public class UserController {
                                    HttpServletResponse response
 
     ) {
-
         User user = (User) httpSession.getAttribute("user");
         if (estimate != null) {
             estimate.calculateAmounts();
@@ -212,11 +214,7 @@ public class UserController {
             logger.info("!!!! " + estimate);
             estimate.getEstimateItems().stream().forEach(ei -> estimateItemRepository.save(ei));
 
-//            try {
             estimateRepository.save(estimate);
-//            } catch (Exception e) {
-//                logger.warn("!!!!"+e.getMessage());
-//            }
 
 
             //Delete eis in ei table when not present in joing table
@@ -258,7 +256,8 @@ public class UserController {
             estimateRepository.delete(estimate);
 
             model.addAttribute("estimate", new Estimate());
-            return "estimate-form";
+//            return "estimate-form";
+            return "forward:/user/estimate";
         }
 
         //Download estimate
@@ -273,16 +272,19 @@ public class UserController {
             if (!priceListItemRepository.findAllByUserIdAndReferenceNumber(user.getId(), searchedItemReferenceNumber).isEmpty()) {
                 model.addAttribute("searchResult",
                         priceListItemRepository.findAllByUserIdAndReferenceNumber(user.getId(), searchedItemReferenceNumber));
+                model.addAttribute("estimateChanged", true);
+
+
             }
         }
 
         //Add pricelist item as estimate item do estimate. Not saves estimate do DB
         if (button != null && button.equals("addEstimateItem")) {
-            logger.info("priceListItemId: " + priceListItemId);
+//            logger.info("priceListItemId: " + priceListItemId);
             if (priceListItemId != null && !priceListItemId.isEmpty()) {
                 PriceListItem priceListItem = priceListItemRepository.findById(Long.parseLong(priceListItemId)).get();
                 EstimateItem estimateItem = null;
-                if (estimate.getEstimateItems().stream()
+                if (estimate.getEstimateItems().stream()    //if estimate already has such item, increase its quantity by 1
                         .map(e -> e.getPriceListItem()
                                 .getId())
                         .collect(Collectors.toList())
@@ -291,8 +293,6 @@ public class UserController {
                     for (EstimateItem ei : estimateItems) {
                         if (ei.getPriceListItem().getId().equals(priceListItem.getId())) {
                             ei.setQuantity(ei.getQuantity() + 1);
-//                            ei.setTotalNetPrice(ei.getPriceListItem()
-//                                    .getUnitNetPrice().multiply(BigDecimal.valueOf(ie.getQuantity())));
                             ei.calculateAmounts(ei.getQuantity());
                             estimateItems.set(estimateItems.indexOf(ei), ei);
                         }
@@ -303,9 +303,11 @@ public class UserController {
                     estimateItem.setPriceListItem(priceListItem);
                     estimateItem.setIndividualVatRate(priceListItem.getBaseVatRate());
                     estimateItem.setQuantity(1);
+                    estimateItem.setPositionInEstimate(estimate.getEstimateItems().size() + 1);
                     try {
-                        estimateItem.setTotalNetPrice(estimateItem.getPriceListItem()
-                                .getUnitNetPrice().multiply(BigDecimal.valueOf(estimateItem.getQuantity())));
+                        estimateItem.calculateAmounts(estimateItem.getQuantity());
+//                        estimateItem.setTotalNetPrice(estimateItem.getPriceListItem()
+//                                .getUnitNetPrice().multiply(BigDecimal.valueOf(estimateItem.getQuantity())));
                     } catch (Exception e) {
                         logger.warn(e.getMessage());
                     }
@@ -319,10 +321,8 @@ public class UserController {
                 }
             }
             model.addAttribute("estimateChanged", true);
-
         }
-
-
+        estimate.sortItemsByPosition();
         model.addAttribute("estimate", estimate);
         return "estimate-form";
     }
@@ -426,52 +426,6 @@ public class UserController {
         return "user-show-pricelist";
     }
 
-    //Delete pricelist item
-    @GetMapping("/deleteitem")
-    public String deleteUserItem(
-            Model model,
-            HttpSession httpSession,
-            @RequestParam String id
-    ) {
-
-        User user = (User) httpSession.getAttribute("user");
-        PriceList userPR = priceListRepository.findByIdWithPriceListItems(
-                userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId());
-        userPR.getPriceListItems().removeIf(i -> i.getId() == Long.parseLong(id));
-        userPR.countItems();
-        priceListRepository.save(userPR);
-
-        if (estimateItemRepository.findByPriceListItemId(Long.parseLong(id)) != null) //get unempty list
-        {
-//            Long estimateItemId = estimateItemRepository.findByPriceListItemId(Long.parseLong(id)).getId();
-
-            List<Long> estimateItemIds = estimateItemRepository.findByPriceListItemId(Long.parseLong(id))
-                    .stream()
-                    .map(ei -> ei.getId())
-                    .collect(Collectors.toList());
-
-            estimateItemIds.stream()
-                    .forEach(eiId -> estimateItemRepository.deleteFromParentRelationTableById(eiId)); //remove from parent table
-            if (estimateItemRepository.findAllById(estimateItemIds).size() > 0) {
-                estimateItemIds.stream()
-                        .forEach(eiId -> estimateItemRepository.deleteById(eiId)); //remove from table
-            }
-        }
-
-        priceListItemRepository.delete(priceListItemRepository.findById(Long.parseLong(id)).get());
-
-        List<Estimate> userEstimates = userRepository.findByIdWithEstimates(user.getId()).getEstimates();
-        for (Estimate ue : userEstimates) {
-            ue.calculateAmounts();
-            estimateRepository.save(ue);
-        }
-        user.setEstimates(userEstimates);
-        userRepository.save(user);
-
-        model.addAttribute("priceList", userPR);
-
-        return "user-show-pricelist";
-    }
 
     //Edit estimate item
     @GetMapping("/editestimateitem")
@@ -483,9 +437,6 @@ public class UserController {
     ) {
 
         Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
-//        logger.info("!!! " + piId);
-//        logger.info("!!! " + estimate);
-
         model.addAttribute("estimateItem", estimate.getEstimateItems()
                 .stream()
                 .filter(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)))
@@ -525,6 +476,7 @@ public class UserController {
         return "estimate-form";
     }
 
+    //delete estimate item
     @GetMapping("/deleteestimateitem")
     public String deleteEstimateItem(
             @RequestParam String id,
@@ -540,17 +492,148 @@ public class UserController {
                 .stream()
                 .filter(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)))
                 .collect(Collectors.toList()).get(0).getId();
-//        estimateItemRepository.deleteFromRelationTableById(eiId);
-//        if(eiId!=null) {
-//            estimateItemRepository.deleteById(eiId);
-//        }
         estimate.getEstimateItems().removeIf(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)));
 
 
         estimate.calculateAmounts();
+        estimate.renumberItemsPositions();
+
         model.addAttribute("estimate", estimate);
         model.addAttribute("estimateChanged", true);
         return "estimate-form";
+    }
+
+    //move up estimate item
+    @GetMapping("/moveupestimateitem")
+    public String moveUpestimateItem(
+            @RequestParam String id,
+            @RequestParam String piId,
+            Model model,
+            HttpSession httpSession
+    ) {
+
+        Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
+        EstimateItem eiToBeMoved = estimate.getEstimateItems() //id ei id by pi id
+                .stream()
+                .filter(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)))
+                .collect(Collectors.toList()).get(0);
+
+
+        if (estimate.getEstimateItems().indexOf(eiToBeMoved) > 0) { // can be moved up
+
+            //DB operation
+            int indexOfUpperElement = estimate.getEstimateItems().indexOf(eiToBeMoved) - 1;
+            estimate.getEstimateItems().get(indexOfUpperElement)
+                    .setPositionInEstimate(
+                            estimate.getEstimateItems().get(indexOfUpperElement).getPositionInEstimate() + 1);
+            eiToBeMoved.setPositionInEstimate(eiToBeMoved.getPositionInEstimate() - 1);
+
+            //list operation on estimate items list
+            Collections.swap(
+                    estimate.getEstimateItems(),
+                    estimate.getEstimateItems().indexOf(eiToBeMoved),
+                    estimate.getEstimateItems().indexOf(eiToBeMoved) - 1
+            );
+
+//        httpSession.setAttribute("estimate",estimate);
+            estimate.sortItemsByPosition();
+            model.addAttribute("estimateChanged", true);
+        }
+        model.addAttribute("estimate", estimate);
+        return "estimate-form";
+    }
+
+    //move up estimate item
+    @GetMapping("/movedownestimateitem")
+    public String moveDownestimateItem(
+            @RequestParam String id,
+            @RequestParam String piId,
+            Model model,
+            HttpSession httpSession
+    ) {
+
+        Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
+        EstimateItem eiToBeMoved = estimate.getEstimateItems() //id ei id by pi id
+                .stream()
+                .filter(ei -> ei.getPriceListItem().getId().equals(Long.parseLong(piId)))
+                .collect(Collectors.toList()).get(0);
+
+
+            if (estimate.getEstimateItems().indexOf(eiToBeMoved) < estimate.getEstimateItems().size() - 1) {// can be moved down
+
+                //DB operation
+                int indexOfLowerElement = estimate.getEstimateItems().indexOf(eiToBeMoved) + 1;
+                estimate.getEstimateItems().get(indexOfLowerElement)
+                        .setPositionInEstimate(
+                                estimate.getEstimateItems().get(indexOfLowerElement).getPositionInEstimate() - 1);
+                eiToBeMoved.setPositionInEstimate(eiToBeMoved.getPositionInEstimate() + 1);
+
+                //list operation on estimate items list
+                Collections.swap(
+                        estimate.getEstimateItems(),
+                        estimate.getEstimateItems().indexOf(eiToBeMoved),
+                        estimate.getEstimateItems().indexOf(eiToBeMoved) + 1
+                );
+
+//        httpSession.setAttribute("estimate",estimate);
+            model.addAttribute("estimateChanged", true);
+        }
+        model.addAttribute("estimate", estimate);
+        return "estimate-form";
+    }
+
+
+    //Delete pricelist item
+    @GetMapping("/deleteitem")
+    public String deleteUserItem(
+            Model model,
+            HttpSession httpSession,
+            @RequestParam String id
+    ) {
+
+        User user = (User) httpSession.getAttribute("user");
+        try { //protection against to fast clicking on delete link in view / element not found in DB exception
+            PriceList userPR = priceListRepository.findByIdWithPriceListItems(
+                    userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId());
+            userPR.getPriceListItems().removeIf(i -> i.getId() == Long.parseLong(id));
+            userPR.countItems();
+            priceListRepository.save(userPR);
+
+            if (estimateItemRepository.findByPriceListItemId(Long.parseLong(id)) != null) //get unempty list
+            {
+
+                List<Long> estimateItemIds = estimateItemRepository.findByPriceListItemId(Long.parseLong(id))
+                        .stream()
+                        .map(ei -> ei.getId())
+                        .collect(Collectors.toList());
+
+                estimateItemIds.stream()
+                        .forEach(eiId -> estimateItemRepository.deleteFromParentRelationTableById(eiId)); //remove from parent table
+                if (estimateItemRepository.findAllById(estimateItemIds).size() > 0) {
+                    estimateItemIds.stream()
+                            .forEach(eiId -> estimateItemRepository.deleteById(eiId)); //remove from table
+                }
+            }
+
+            priceListItemRepository.delete(priceListItemRepository.findById(Long.parseLong(id)).get());
+
+            List<Estimate> userEstimates = userRepository.findByIdWithEstimates(user.getId()).getEstimates();
+            for (Estimate ue : userEstimates) {
+                ue.calculateAmounts();
+                estimateRepository.save(ue);
+            }
+            user.setEstimates(userEstimates);
+            userRepository.save(user);
+
+            model.addAttribute("priceList", userPR);
+
+            return "user-show-pricelist";
+        } catch (Exception e) {
+            logger.warn(e.getMessage());
+            model.addAttribute("priceList", priceListRepository.findByIdWithPriceListItems(
+                    userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()));
+            return "user-show-pricelist";
+        }
     }
 
 
@@ -600,7 +683,6 @@ public class UserController {
         }
         model.addAttribute("p" +
                 "riceList", priceList);
-//        return "user-pricelist";
         return "user-show-pricelist";
     }
 }

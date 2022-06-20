@@ -233,29 +233,35 @@ public class AdminController {
             @RequestParam String priceListId
 
     ) {
+        try {
+            PriceList currentPriceList = priceListRepository.findByIdWithPriceListItems(Long.parseLong(priceListId));
+            currentPriceList.getPriceListItems().removeIf(i -> i.getId() == Long.parseLong(id));
+            currentPriceList.countItems();
+            priceListRepository.save(currentPriceList);
 
-        PriceList currentPriceList = priceListRepository.findByIdWithPriceListItems(Long.parseLong(priceListId));
-        currentPriceList.getPriceListItems().removeIf(i -> i.getId() == Long.parseLong(id));
-        currentPriceList.countItems();
-        priceListRepository.save(currentPriceList);
+            //remove from all estimates, where PRI is present
+            removeEstimateItemByPriceListItemId(Long.parseLong(id));
 
-        //remove from all estimates, where PRI is present
-        removeEstimateItemByPriceListItemId(Long.parseLong(id));
+            priceListItemRepository.delete(priceListItemRepository.findById(Long.parseLong(id)).get());
 
-        priceListItemRepository.delete(priceListItemRepository.findById(Long.parseLong(id)).get());
+            //update all estimates, where PRI is present
+            recalculateALlEstimates();
 
-        //update all estimates, where PRI is present
-        recalculateALlEstimates();
-
-        if (currentPriceList.getNumberOfItems().equals(0l)) {
-            if (!currentPriceList.isUserOwned()) {
-                currentPriceList = priceListRepository.findById(currentPriceList.getId()).get();
-                priceListRepository.delete(currentPriceList);
-                return "forward:/admin/selectpricelist";
+            if (currentPriceList.getNumberOfItems().equals(0l)) {
+                if (!currentPriceList.isUserOwned()) {
+                    currentPriceList = priceListRepository.findById(currentPriceList.getId()).get();
+                    priceListRepository.delete(currentPriceList);
+                    return "forward:/admin/selectpricelist";
+                }
             }
+            model.addAttribute("priceList", currentPriceList);
+            return "admin-show-pricelist";
+        } catch (NumberFormatException e) {
+            logger.warn(e.getMessage());
+            model.addAttribute("priceList", priceListRepository.findByIdWithPriceListItems(Long.parseLong(priceListId)));
+            return "user-show-pricelist";
         }
-        model.addAttribute("priceList", currentPriceList);
-        return "admin-show-pricelist";
+
     }
 
     //edit admin account
@@ -282,7 +288,7 @@ public class AdminController {
         if (results.hasErrors()) {
             return "admin-edit-account";
         }
-        if(model.getAttribute("invalidPassword") != null) {
+        if (model.getAttribute("invalidPassword") != null) {
             return "admin-edit-account";
         }
         user.setPasswordUnhashed(user.getPassword());

@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 @Entity
-public class EstimateItem {
+public class EstimateItem{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,6 +17,7 @@ public class EstimateItem {
     private BigDecimal totalNetPrice;
     @Min(1)
     private int quantity;
+    private int positionInEstimate;
     @OneToOne
     private PriceListItem priceListItem;
 
@@ -27,6 +28,8 @@ public class EstimateItem {
     {
         this.totalNetPrice = this.priceListItem.getUnitNetPrice().multiply(BigDecimal.valueOf(quantity));
     }
+
+
 
     public Long getId() {
         return id;
@@ -75,6 +78,14 @@ public class EstimateItem {
 
     public void setPriceListItem(PriceListItem priceListItem) {
         this.priceListItem = priceListItem;
+    }
+
+    public int getPositionInEstimate() {
+        return positionInEstimate;
+    }
+
+    public void setPositionInEstimate(int positionInEstimate) {
+        this.positionInEstimate = positionInEstimate;
     }
 
     @Override
