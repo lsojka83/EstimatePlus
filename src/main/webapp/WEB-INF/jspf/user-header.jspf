@@ -52,9 +52,13 @@
                         Dashboard
                     </a>
                     <div class="sb-sidenav-menu-heading">Estimate</div>
+                    <a class="nav-link" href="/user/newestimate">
+                        <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                        Create new estimate
+                    </a>
                     <a class="nav-link" href="/user/estimate">
                         <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                        Add or Edit estimate
+                       Edit estimate
                     </a>
                     <div class="sb-sidenav-menu-heading">Price List</div>
                     <a class="nav-link" href="/user/additem">

@@ -38,6 +38,8 @@
 
                                     <input name="priceListItemId" value="${estimateItem.priceListItem.id}" type="number" hidden>
                                     <input name="estimateId" value="${estimateId}" hidden>
+                                    <form:hidden path="positionInEstimate" value="${positionInEstimate}"></form:hidden>
+
 
                                     <div>
                                         <button type="submit" class="btn btn-primary btn-block">Save</button>

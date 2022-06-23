@@ -31,9 +31,7 @@
                                                     <form:input path="email" id="email" type="text"  cssClass="form-control"></form:input>
                                                     <label for="email">Email</label>
                                                     <form:errors path="email"/>
-
                                                 </div>
-
                                                 <div class="form-floating mb-3 mb-md-0">
                                                     <form:input path="password" id="password" element="div" type="password" cssClass="form-control"></form:input>
                                                     <form:errors path="password" cssClass="form-control"/>

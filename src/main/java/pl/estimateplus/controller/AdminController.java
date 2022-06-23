@@ -11,15 +11,20 @@ import pl.estimateplus.entity.Estimate;
 import pl.estimateplus.entity.PriceList;
 import pl.estimateplus.entity.PriceListItem;
 import pl.estimateplus.entity.User;
+import pl.estimateplus.model.ColumnAssigment;
 import pl.estimateplus.model.Excel;
 import pl.estimateplus.model.Messages;
 import pl.estimateplus.model.Security;
 import pl.estimateplus.repository.*;
 import pl.estimateplus.validator.PasswordValidator;
 
+import javax.persistence.Entity;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -47,7 +52,6 @@ public class AdminController {
         this.passwordValidator = passwordValidator;
     }
 
-
 //    @GetMapping("/import")
 //    public String importData() {
 //        List<PriceListItem> priceListItems = Excel.importExcelData();
@@ -66,30 +70,94 @@ public class AdminController {
     }
 
     @GetMapping("/uploadfile")
-    public String uploadFile(Model model) {
+    public String uploadFile() {
         return "admin-file-upload-form";
     }
 
+//    @RequestMapping(value = "/uploadfilecolumnchooser", method = RequestMethod.POST, consumes = {"multipart/form-data"})
+    @RequestMapping(value = "/uploadfilecolumnchooser", method = RequestMethod.POST)
+    public String submit(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false) String firstRowIsColumnsNames,
+            Model model,
+            HttpSession httpSession
 
-    @RequestMapping(value = "/uploadfile", method = RequestMethod.POST, consumes = {"multipart/form-data"})
-    public String submit(@RequestParam("file") MultipartFile file, Model model) {
-        List<PriceListItem> priceListItems;
-        final PriceList priceList;
+    ) {
         if (file.getContentType().equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
-            PriceList existingPriceList;
-            priceList = Excel.importExcelData(file);
-            if (priceList.getErrorMessage() != null) {
-                model.addAttribute("error", priceList.getErrorMessage());
-                return "file-upload-view";
-            }
-            if (priceListRepository.findByName(priceList.getName()) != null) {
-//                logger.info("!!!price list exists");
+            Map<Integer, String> columnsAssignmentMap = new HashMap<>();
+            columnsAssignmentMap = Excel.getColumnsNames(file, firstRowIsColumnsNames);
+            String fileName = Excel.getFileName(file);
+            Map<Integer, List<String>> fileData = Excel.getExcelData(file, firstRowIsColumnsNames);
+            model.addAttribute("columnsFromFile", columnsAssignmentMap);
+            System.out.println("!!!"+columnsAssignmentMap);
+            httpSession.setAttribute("data", fileData);
+//            model.addAttribute("file", file);
+//            httpSession.setAttribute("file", file);
+            model.addAttribute("firstRowIsColumnsNames","yes");
+            model.addAttribute("fileName",fileName);
+//            return "forward:/admin/uploadfile";
+            return "admin-upload-file-select-columns";
 
+        }
+        return "file-upload-view";    }
+
+//    @RequestMapping(value = "/uploadfile", method = RequestMethod.POST, consumes = {"multipart/form-data"})
+    @RequestMapping(value = "/uploadfile", method = RequestMethod.POST)
+    public String submit(
+            Model model,
+//            @RequestParam("file") MultipartFile file,
+            @RequestParam String preset,
+            @RequestParam String referenceNumber,
+            @RequestParam String description,
+            @RequestParam String brand,
+            @RequestParam String comment,
+            @RequestParam String unitNetPrice,
+            @RequestParam String unit,
+            @RequestParam String baseVatRate,
+            @RequestParam(required = false) String firstRowIsColumnsNames,
+            @RequestParam String fileName,
+            HttpSession httpSession
+
+    ) {
+        ColumnAssigment columnAssigment = new ColumnAssigment();
+
+        if(!preset.equals("-"))
+        {
+            if(preset.equals("legrand"))
+            {
+                columnAssigment.referenceNumberColumnNumber = 6;
+                columnAssigment.descriptionColumnNumber = 7;
+                columnAssigment.brandColumnNumber = 5;
+                columnAssigment.commentColumnNumber = 4;
+                columnAssigment.unitNetPriceColumnNumber = 9;
+                columnAssigment.unitColumnNumber = 10;
+                columnAssigment.baseVatRateColumnNumber = 14;
+            }
+        }
+        else {
+            columnAssigment.referenceNumberColumnNumber = Integer.valueOf(referenceNumber);
+            columnAssigment.descriptionColumnNumber = Integer.valueOf(description);
+            columnAssigment.brandColumnNumber = Integer.valueOf(brand);
+            columnAssigment.commentColumnNumber = Integer.valueOf(comment);
+            columnAssigment.unitNetPriceColumnNumber = Integer.valueOf(unitNetPrice);
+            columnAssigment.unitColumnNumber = Integer.valueOf(unit);
+            columnAssigment.baseVatRateColumnNumber = Integer.valueOf(baseVatRate);
+        }
+
+        final PriceList priceList;
+            PriceList existingPriceList;
+        priceList = Excel.importFromExcelData((Map<Integer, List<String>>)httpSession.getAttribute("data"), columnAssigment,firstRowIsColumnsNames, fileName);
+
+//            if (priceList.getErrorMessage() != null) {
+//                model.addAttribute("error", priceList.getErrorMessage());
+//                return "file-upload-view";
+//                return "file-upload-view";
+//            }
+            if (priceListRepository.findByName(priceList.getName()) != null) {
                 existingPriceList = priceListRepository.findByName(priceList.getName());
-//               logger.info("!!!"+existingPriceList.getPriceListItems());
                 logger.info("!!!" + priceList.getPriceListItems());
 
-                existingPriceList.getPriceListItems().stream() //updated existing PLIs with elements from loaded PL
+                existingPriceList.getPriceListItems().stream() //update existing PLIs with elements from loaded PL
                         .forEach(pi ->
                         {
                             if (priceList.getPriceListItems().stream()
@@ -127,7 +195,6 @@ public class AdminController {
                             } else {
                                 priceListItemRepository.save(npi);
                                 existingPriceList.getPriceListItems().add(npi);
-
                             }
                         });
 
@@ -136,17 +203,16 @@ public class AdminController {
                 existingPriceList.countItems();
                 priceListRepository.save(existingPriceList);
                 model.addAttribute("priceList", existingPriceList);
-            } else {
+            } else if(priceList.getPriceListItems()!=null){
                 priceList.getPriceListItems().stream().forEach(pi -> priceListItemRepository.save(pi));
                 priceListRepository.save(priceList);
 
                 model.addAttribute("priceList", priceList);
+            }else{
+                model.addAttribute("errorMessage", priceList.getErrorMessage());
+                return "admin-error-message";
             }
             return "admin-show-pricelist";
-
-        }
-        model.addAttribute("file", file);
-        return "file-upload-view";
     }
 
 

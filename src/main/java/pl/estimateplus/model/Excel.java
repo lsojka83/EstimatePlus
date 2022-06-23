@@ -26,10 +26,18 @@ import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 
 public class Excel {
+
+    private static String TMP_DIR = System.getProperty("java.io.tmpdir");
+    private static String fileLocation = TMP_DIR + "/importedFile.tmp";
+    private static File file = new File(fileLocation);
+    private static Path path = Paths.get(fileLocation);
 
 
     public static void main(String[] args) throws IOException {
@@ -47,57 +55,126 @@ public class Excel {
 //        System.out.println(resource.getFile().getName().split("\\.")[0]);
     }
 
+    public static Map<Integer, String> getColumnsNames(MultipartFile multipartFile, String firstRowIsColumnsNames) {
 
-    public static PriceList importExcelData(MultipartFile multipartFile) {
-
-        PriceList priceList = new PriceList();
-        int itemsCount = 0;
-        String priceListName = multipartFile.getOriginalFilename().split("\\.")[0];
-        System.out.println(priceListName);
-
+        Map<Integer, String> columnsAssignmentMap = new HashMap<>();
         //load file
-        File file = null; //webapp
-        String fileLocation = "targetFile.tmp";
-        Resource resource = new ClassPathResource(fileLocation);
-        try {
-            file = resource.getFile();
-        } catch (IOException e) {
-            priceList.setErrorMessage(e.getMessage());
-            return priceList;
+
+        if (!Files.exists(path)) {
+            try {
+                Files.createFile(path);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
+
         try (OutputStream os = new FileOutputStream(file)) {
             os.write(multipartFile.getBytes());
         } catch (FileNotFoundException e) {
-//            throw new RuntimeException(e);
-            priceList.setErrorMessage(e.getMessage());
-            return priceList;
+            throw new RuntimeException(e);
         } catch (IOException e) {
-//            throw new RuntimeException(e);
-            priceList.setErrorMessage(e.getMessage());
-            return priceList;
+            throw new RuntimeException(e);
         }
-
         Workbook workbook = null;
-        List<PriceListItem> priceListItems = new ArrayList<>();
-
         try {
             workbook = new XSSFWorkbook(file);
         } catch (IOException e) {
-//            e.printStackTrace();
-            priceList.setErrorMessage(e.getMessage());
-            return priceList;
+            e.printStackTrace();
         } catch (InvalidFormatException e) {
-
-//            throw new RuntimeException(e);
-            priceList.setErrorMessage(e.getMessage());
-            return priceList;
+            throw new RuntimeException(e);
         }
 
         if (file != null && workbook != null) {
             Sheet sheet = workbook.getSheetAt(0);
-
             Map<Integer, List<String>> data = new HashMap<>();
             int i = 0;
+            Row row = sheet.getRow(0);
+            if (firstRowIsColumnsNames != null && firstRowIsColumnsNames.equals("yes")) {
+
+
+                data.put(i, new ArrayList<String>());
+                for (Cell cell : row) {
+                    switch (cell.getCellType()) {
+                        case STRING: {
+                            data.get(i).add(cell.getRichStringCellValue().getString());
+                            break;
+                        }
+                        case NUMERIC: {
+                            if (DateUtil.isCellDateFormatted(cell)) {
+                                data.get(i).add(cell.getDateCellValue() + "");
+                            } else {
+                                data.get(i).add(cell.getNumericCellValue() + "");
+                            }
+                            break;
+                        }
+                        case BOOLEAN: {
+                            data.get(i).add(cell.getBooleanCellValue() + "");
+                            break;
+                        }
+                        case FORMULA: {
+                            data.get(i).add(cell.getCellFormula() + "");
+                            break;
+                        }
+                        default:
+                            data.get(i).add(" ");
+                    }
+                }
+                for (String columnName : data.get(0)) {
+                    columnsAssignmentMap.put(i, columnName);
+                    i++;
+                }
+            } else {
+                int columnCount = Integer.valueOf(row.getLastCellNum());
+                for (i = 0; i <= columnCount; i++) {
+                    columnsAssignmentMap.put(i, "Column number " + (i + 1));
+                }
+            }
+
+        }
+        return columnsAssignmentMap;
+    }
+
+    public static Map<Integer, List<String>> getExcelData(MultipartFile multipartFile, String
+            firstRowIsColumnsNames) {
+
+        Map<Integer, List<String>> data = new HashMap<>();
+
+        if (!Files.exists(path)) {
+            try {
+                Files.createFile(path);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+        try (OutputStream os = new FileOutputStream(file)) {
+            os.write(multipartFile.getBytes());
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Workbook workbook = null;
+
+        try {
+            workbook = new XSSFWorkbook(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvalidFormatException e) {
+
+            throw new RuntimeException(e);
+        }
+
+        if (file != null && workbook != null) {
+            Sheet sheet = workbook.getSheetAt(0);
+            int i = 0;
+
+            if (firstRowIsColumnsNames != null && firstRowIsColumnsNames.equals("yes")) {
+                sheet.removeRow(sheet.getRow(0));
+            }
+
             for (Row row : sheet) {
                 data.put(i, new ArrayList<String>());
                 for (Cell cell : row) {
@@ -128,75 +205,119 @@ public class Excel {
                 }
                 i++;
             }
-            priceList.setNumberOfItems(Long.valueOf(i));
 
-            for (Map.Entry<Integer, List<String>> entry : data.entrySet()) {
-                //vendorName
-                String vendorName = multipartFile.getOriginalFilename().split("\\.")[0];
-
-                String referenceNumber = entry.getValue().get(6); //referenceNumber
-                String description = "no description";
-                if (!entry.getValue().get(7).isEmpty() && !entry.getValue().get(7).isBlank()) {
-                    description = entry.getValue().get(7); //description
-                }
-                String brand = entry.getValue().get(5); //brand
-                String comment = "no comment";//comment
-
-                BigDecimal unitNetPrice;
-                try {
-                    String s = entry.getValue().get(9).trim();
-                    unitNetPrice = new BigDecimal(s).setScale(2); //unitNetPrice
-
-                }
-                catch (Exception e)
-                {
-//                    unitNetPrice = new BigDecimal("0").setScale(2); //unitNetPrice
-                    priceList.setErrorMessage(e.getMessage());
-                    return priceList;
-                }
-
-                String unit = entry.getValue().get(10); //unit
-
-                int baseVatRate = 23;
-
-
-                try {
-
-                    if (!entry.getValue().get(14).isEmpty() && !entry.getValue().get(14).isBlank()) {
-                        try {
-                            if(entry.getValue().get(14).contains("\\.")) {
-                                baseVatRate = Integer.parseInt(entry.getValue().get(14).split("\\.")[0]);
-                            }else if(entry.getValue().get(14).contains("\\,"))
-                            {
-                                baseVatRate = Integer.parseInt(entry.getValue().get(14).split("\\,")[0]);
-                            }
-                            else
-                            {
-                                baseVatRate = Integer.parseInt(entry.getValue().get(14));
-                            }
-
-                        } catch (NumberFormatException e) {
-//                            e.printStackTrace();
-                            priceList.setErrorMessage(e.getMessage());
-                            return priceList;
-                        } catch (Exception e) {
-//                            e.printStackTrace();
-                            priceList.setErrorMessage(e.getMessage());
-                            return priceList;
-                        }
-                    }
-                }catch (Exception e)
-                {
-                    priceList.setErrorMessage(e.getMessage());
-                    return priceList;
-                }
-                //addedOn
-                PriceListItem priceListItem = new PriceListItem(vendorName, referenceNumber, description, brand, comment, unitNetPrice, unit, baseVatRate);
-                priceListItems.add(priceListItem);
-//                System.out.println(priceListItem);
-
-            }
         }
+
+
+        return data;
+    }
+
+    public static String getFileName(MultipartFile multipartFile) {
+
+        return multipartFile.getOriginalFilename().split("\\.")[0];
+    }
+
+
+    public static PriceList importFromExcelData(Map<Integer, List<String>> data, ColumnAssigment
+            columnAssigment, String firstRowIsColumnsNames, String fileName) {
+
+        PriceList priceList = new PriceList();
+        int itemsCount = 0;
+        String priceListName = fileName;
+
+        List<PriceListItem> priceListItems = new ArrayList<>();
+
+
+        int i = data.keySet().size();
+        priceList.setNumberOfItems(Long.valueOf(i));
+
+        for (Map.Entry<Integer, List<String>> entry : data.entrySet()) {
+
+            String vendorName = fileName;  //vendorName - file name is assigned
+
+
+            String referenceNumber = "-"; //referenceNumber
+            try {
+                referenceNumber = entry.getValue().get(columnAssigment.referenceNumberColumnNumber);
+            }catch (Exception e)
+            {
+                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
+                return priceList;            }
+
+            String description = "no description"; //description
+            try {
+                if (!entry.getValue().get(columnAssigment.descriptionColumnNumber).isEmpty() && !entry.getValue().get(columnAssigment.descriptionColumnNumber).isBlank()) {
+                    description = entry.getValue().get(columnAssigment.descriptionColumnNumber);
+                }
+            }catch (Exception e)
+            {
+                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
+                return priceList;            }
+
+            String brand = "-"; //brand
+            try {
+                brand = entry.getValue().get(columnAssigment.brandColumnNumber);
+            }catch (Exception e)
+            {
+                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
+                return priceList;            }
+
+            String comment = "-"; //comment
+
+            String s = "0";
+            BigDecimal unitNetPrice; //unitNetPrice
+            try {
+                s = entry.getValue().get(columnAssigment.unitNetPriceColumnNumber).trim();
+                unitNetPrice = new BigDecimal(s).setScale(2);
+
+            } catch (Exception e) {
+//                priceList.setErrorMessage(e.getMessage());
+//                s="0";
+//                unitNetPrice = new BigDecimal(s).setScale(2);
+                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
+                return priceList;
+            }
+
+            String unit = "-"; //unit
+            try {
+                 unit = entry.getValue().get(columnAssigment.unitColumnNumber);
+            }
+            catch (Exception e)
+            {
+                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
+                return priceList;            }
+
+            int baseVatRate = 23;
+
+
+            try {
+
+                if (!entry.getValue().get(columnAssigment.baseVatRateColumnNumber).isEmpty() && !entry.getValue().get(columnAssigment.baseVatRateColumnNumber).isBlank()) {
+                    try {
+                        if (entry.getValue().get(columnAssigment.baseVatRateColumnNumber).contains("\\.")) {
+                            baseVatRate = Integer.parseInt(entry.getValue().get(columnAssigment.baseVatRateColumnNumber).split("\\.")[0]);
+                        } else if (entry.getValue().get(columnAssigment.baseVatRateColumnNumber).contains("\\,")) {
+                            baseVatRate = Integer.parseInt(entry.getValue().get(columnAssigment.baseVatRateColumnNumber).split("\\,")[0]);
+                        } else {
+                            baseVatRate = Integer.parseInt(entry.getValue().get(columnAssigment.baseVatRateColumnNumber));
+                        }
+
+                    } catch (NumberFormatException e) {
+                        priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
+                        return priceList;
+                    } catch (Exception e) {
+                        priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
+                        return priceList;                    }
+                }
+            } catch (Exception e) {
+                priceList.setErrorMessage(e.getMessage());
+            }
+            //addedOn
+            PriceListItem priceListItem = new PriceListItem(vendorName, referenceNumber, description, brand, comment, unitNetPrice, unit, baseVatRate);
+            priceListItems.add(priceListItem);
+
+        }
+
         priceList.setUserOwned(false);
         priceList.setPriceListItems(priceListItems);
         priceList.setName(priceListName);
@@ -209,16 +330,16 @@ public class Excel {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         Sheet sheet = workbook.createSheet(estimate.getName());
-        sheet.setColumnWidth(0,1000); //se. no.
-        sheet.setColumnWidth(1,4000); //referenceNumber
-        sheet.setColumnWidth(2,15000); //description
-        sheet.setColumnWidth(3,4000); //brand
-        sheet.setColumnWidth(4,4000); //unitNetPrice
-        sheet.setColumnWidth(5,2000); //quantity
-        sheet.setColumnWidth(6,4000); //unit
-        sheet.setColumnWidth(7,4000); //total net price
-        sheet.setColumnWidth(8,2000); //individualVatRate
-        sheet.setColumnWidth(9,15000); //comment
+        sheet.setColumnWidth(0, 1000); //se. no.
+        sheet.setColumnWidth(1, 4000); //referenceNumber
+        sheet.setColumnWidth(2, 15000); //description
+        sheet.setColumnWidth(3, 4000); //brand
+        sheet.setColumnWidth(4, 4000); //unitNetPrice
+        sheet.setColumnWidth(5, 2000); //quantity
+        sheet.setColumnWidth(6, 4000); //unit
+        sheet.setColumnWidth(7, 4000); //total net price
+        sheet.setColumnWidth(8, 2000); //individualVatRate
+        sheet.setColumnWidth(9, 15000); //comment
 
         Row header = sheet.createRow(0);
 
@@ -277,8 +398,7 @@ public class Excel {
         style.setWrapText(true);
         int rowIndex = 1; // row below header row
 
-        for(EstimateItem ei: estimate.getEstimateItems())
-        {
+        for (EstimateItem ei : estimate.getEstimateItems()) {
             Row row = sheet.createRow(rowIndex);
 
             Cell cell = row.createCell(0);
@@ -355,7 +475,6 @@ public class Excel {
         cell = row.createCell(7);
         cell.setCellValue(estimate.getTotalGrossAmount().floatValue());
         cell.setCellStyle(style);
-
 
 
         return workbook;

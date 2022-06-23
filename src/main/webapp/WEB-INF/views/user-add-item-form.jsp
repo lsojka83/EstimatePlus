@@ -68,11 +68,8 @@
                                 <label for="baseVatRate">VAT</label>
                             </div>
 
-
-                    <div>
-                        <form:hidden path="addedOn" value="${addedOn}"></form:hidden>
-                    </div>
-                    <form:input path="vendorName" value="${userName}"
+                                <form:hidden path="addedOn" value="${addedOn}"></form:hidden>
+                                <form:input path="vendorName" value="${userName}"
                                 hidden="true"></form:input>
                     <div>
                         <button type="submit" class="btn btn-primary btn-block">Save</button>

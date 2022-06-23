@@ -1,6 +1,5 @@
 package pl.estimateplus.controller;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +20,9 @@ import pl.estimateplus.validator.PasswordValidator;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.validation.ConstraintViolation;
 import javax.validation.Valid;
 import javax.validation.Validator;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -113,7 +109,20 @@ public class UserController {
         return "user-dashboard";
     }
 
-    //Add/edit estimate
+
+    //Create new estimate
+    @GetMapping("/newestimate")
+    public String newEstimate(
+            HttpSession httpSession,
+            Model model
+    ) {
+
+        model.addAttribute("estimate", new Estimate());
+
+        return "estimate-form";
+    }
+
+    //Edit estimate
     @GetMapping("/estimate")
     public String estimate(
             Model model,
@@ -125,14 +134,15 @@ public class UserController {
         List<String> estimatesNames = user.getEstimates().stream().map(e -> e.getName()).collect(Collectors.toList());
         model.addAttribute("estimatesNames", estimatesNames);
 
-        return "estimate-action";
+        return "estimate-select";
     }
 
     @PostMapping("/estimate")
     public String estimatePost(
-            Model model
-            , @RequestParam String button
-            , @RequestParam(required = false) String selectedEstimate
+            Model model,
+            @RequestParam String button,
+            @RequestParam(required = false) String selectedEstimate,
+            HttpSession httpSession
 
     ) {
 
@@ -143,7 +153,8 @@ public class UserController {
 
             if (selectedEstimate != null) {
 
-                Estimate estimate = estimateRepository.findByName(selectedEstimate);
+                Estimate estimate = estimateRepository.findByNameAndUserName(selectedEstimate, ((User)httpSession.getAttribute("user")).getUserName());
+//                Estimate estimate = estimateRepository.findByName(selectedEstimate);
                 estimate.sortItemsByPosition();
                 model.addAttribute("estimate", estimate);
             } else {
@@ -537,9 +548,9 @@ public class UserController {
 
 //        httpSession.setAttribute("estimate",estimate);
             estimate.sortItemsByPosition();
-            model.addAttribute("estimateChanged", true);
         }
         model.addAttribute("estimate", estimate);
+        model.addAttribute("estimateChanged", true);
         return "estimate-form";
     }
 
@@ -574,12 +585,11 @@ public class UserController {
                         estimate.getEstimateItems().indexOf(eiToBeMoved),
                         estimate.getEstimateItems().indexOf(eiToBeMoved) + 1
                 );
-
-//        httpSession.setAttribute("estimate",estimate);
-            model.addAttribute("estimateChanged", true);
         }
+        model.addAttribute("estimateChanged", true);
         model.addAttribute("estimate", estimate);
         return "estimate-form";
+
     }
 
 
