@@ -66,13 +66,13 @@
                             <td>${priceListItem.baseVatRate}</td>
                             <td>${priceListItem.addedOn}</td>
                             <c:if test="${priceList.userOwned}">
-
                                 <td>
-                                    <a href="/user/edititem?id=${priceListItem.id}&priceListId=${priceList.id}">Edit</a>
-                                    <a href="/user/deleteitem?id=${priceListItem.id}&priceListId=${priceList.id}">Delete</a>
+                                    <a href="/user/edititem?id=${priceListItem.id}&priceListId=${priceList.id}" class="btn btn-warning">Edit</a>
+                                    <a href="/user/deleteitem?id=${priceListItem.id}&priceListId=${priceList.id}"
+                                       class="btn btn-danger"
+                                       id="deleteLink" onclick="return confirm('Are you sure?')">Delete</a>
                                 </td>
                             </c:if>
-
                         </tr>
                     </c:forEach>
                     </tbody>

@@ -264,7 +264,10 @@ public class UserController {
                         }
                     }
             );
-            estimateRepository.delete(estimate);
+
+            if(estimate!= null) {
+                estimateRepository.delete(estimate);
+            }
 
             model.addAttribute("estimate", new Estimate());
 //            return "estimate-form";

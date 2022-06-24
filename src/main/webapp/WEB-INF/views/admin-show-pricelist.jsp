@@ -12,7 +12,9 @@
         <p>
             <c:if test="${!priceList.userOwned}" >
                 <form:form method="get" modelAttribute="priceList" action="/admin/deletepricelist">
-                    <button name="deletePriseListId" value="${priceList.id}" class="btn btn-danger">Delete Price List</button>
+                    <button name="deletePriseListId" value="${priceList.id}" class="btn btn-danger"
+                            id="deleteButton" onclick="return confirm('Are you sure?')"
+                    >Delete Price List</button>
                 </form:form>
             </c:if>
         </p>
@@ -78,10 +80,13 @@
                             <c:if test="${!priceList.userOwned}">
 
                                 <td>
-                                    <a href="/admin/edititem?id=${priceListItem.id}&priceListId=${priceList.id}">Edit</a>
-                                    <a href="/admin/deleteitem?id=${priceListItem.id}&priceListId=${priceList.id}">Delete</a>
-                                </td>        </c:if>
-
+                                    <a href="/admin/edititem?id=${priceListItem.id}&priceListId=${priceList.id}"
+                                       class="btn btn-warning">Edit</a>
+                                    <a href="/admin/deleteitem?id=${priceListItem.id}&priceListId=${priceList.id}"
+                                       class="btn btn-danger"
+                                       id="deleteLink" onclick="return confirm('Are you sure?')">Delete</a>
+                                </td>
+                            </c:if>
                         </tr>
                     </c:forEach>
                     </tbody>

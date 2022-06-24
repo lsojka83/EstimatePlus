@@ -241,8 +241,9 @@ public class Excel {
                 referenceNumber = entry.getValue().get(columnAssigment.referenceNumberColumnNumber);
             }catch (Exception e)
             {
-                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
-                return priceList;            }
+                priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
+//                return priceList;
+            }
 
             String description = "no description"; //description
             try {
@@ -251,16 +252,18 @@ public class Excel {
                 }
             }catch (Exception e)
             {
-                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
-                return priceList;            }
+                priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
+//                return priceList;
+            }
 
             String brand = "-"; //brand
             try {
                 brand = entry.getValue().get(columnAssigment.brandColumnNumber);
             }catch (Exception e)
             {
-                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
-                return priceList;            }
+                priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
+//                return priceList;
+            }
 
             String comment = "-"; //comment
 
@@ -274,7 +277,7 @@ public class Excel {
 //                priceList.setErrorMessage(e.getMessage());
 //                s="0";
 //                unitNetPrice = new BigDecimal(s).setScale(2);
-                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
+                priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
                 return priceList;
             }
 
@@ -284,8 +287,9 @@ public class Excel {
             }
             catch (Exception e)
             {
-                priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
-                return priceList;            }
+                priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
+//                return priceList;
+            }
 
             int baseVatRate = 23;
 
@@ -303,14 +307,15 @@ public class Excel {
                         }
 
                     } catch (NumberFormatException e) {
-                        priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
-                        return priceList;
+                        priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
+//                        return priceList;
                     } catch (Exception e) {
-                        priceList.setErrorMessage(entry.getKey()+" - "+e.getMessage());
-                        return priceList;                    }
+                        priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
+//                        return priceList;
+                    }
                 }
             } catch (Exception e) {
-                priceList.setErrorMessage(e.getMessage());
+                priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
             }
             //addedOn
             PriceListItem priceListItem = new PriceListItem(vendorName, referenceNumber, description, brand, comment, unitNetPrice, unit, baseVatRate);

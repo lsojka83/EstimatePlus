@@ -25,6 +25,8 @@
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
 <script src="<c:url value="/theme/js/datatables-simple-demo.js"/>" defer></script>
 
+<script src="<c:url value="/JS/app.js"/>" defer></script>
+
 </body>
 </html>
 

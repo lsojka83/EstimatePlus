@@ -69,7 +69,8 @@
                                 <a href="/user/editestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}&refNo=${estimateItem.priceListItem.referenceNumber}&estimateId=${estimate.id}"
                                    class="btn btn-warning">Edit</a>
                                 <a href="/user/deleteestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}&refNo=${estimateItem.priceListItem.referenceNumber}&estimateId=${estimate.id}"
-                                   class="btn btn-danger">Delete</a>
+                                   class="btn btn-danger" id="deleteLink" onclick="return confirm('Are you sure?')">Delete</a>
+<%--                                   class="btn btn-danger" id="deleteLink" onclick="confirmActionDeleteLink()">Delete</a>--%>
                                 <a href="/user/moveupestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}"
                                    class="btn btn-success">Move up</a>
                                 <a href="/user/movedownestimateitem?id=${estimateItem.id}&piId=${estimateItem.priceListItem.id}"
@@ -105,7 +106,7 @@
                 <br>
                 <div>
                     <button name="button" value="save" class="btn btn-success">Save estimate to DB</button>
-                    <button name="button" value="delete" class="btn btn-danger">Delete estimate from DB</button>
+                    <button name="button" value="delete" class="btn btn-danger" id="deleteButton" onclick="return confirm('Are you sure?')">Delete estimate from DB</button>
                     <button name="button" value="download" class="btn btn-primary">Download as Excel</button>
 <%--                    <form:button name="button" value="save" cssClass="btn btn-success">Save estimate to DB</form:button>--%>
 <%--                    <form:button name="button" value="delete"--%>

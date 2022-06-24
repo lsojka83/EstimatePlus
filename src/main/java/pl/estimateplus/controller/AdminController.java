@@ -203,7 +203,7 @@ public class AdminController {
                 existingPriceList.countItems();
                 priceListRepository.save(existingPriceList);
                 model.addAttribute("priceList", existingPriceList);
-            } else if(priceList.getPriceListItems()!=null){
+            } else if(priceList.getPriceListItems()!=null && priceList.getErrorMessage().isBlank()){
                 priceList.getPriceListItems().stream().forEach(pi -> priceListItemRepository.save(pi));
                 priceListRepository.save(priceList);
 

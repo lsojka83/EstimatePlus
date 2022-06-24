@@ -16,7 +16,7 @@ public class PriceList {
     @OneToMany
     private List<PriceListItem> priceListItems;
     boolean userOwned;
-    private String errorMessage;
+    private String errorMessage= "";
 
     public PriceList() {
     }
