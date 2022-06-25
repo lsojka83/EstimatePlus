@@ -2,8 +2,12 @@
 ## Webapp for creating cost estimates based on preloaded pricelists or self-added items. Allows to import excel (xlsx) pricelists and export estimates to excel. 
 
 ## Tech used:
-### - Spring
+### - Spring:
+#### - Spring Core
+#### - Spring MVC
+#### - Spring Data
 ### - Hibernate
+#### - Forms validation
 ### - Java (8)
 ### - JSP
 ### - MySQL

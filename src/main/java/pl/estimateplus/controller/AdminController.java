@@ -248,6 +248,7 @@ public class AdminController {
     public String editPriceListItem(
             @Valid @ModelAttribute("priceListItem") PriceListItem priceListItem, BindingResult result,
             @RequestParam String priceListId,
+            @RequestParam String button,
             Model model
 
     ) {
@@ -256,8 +257,11 @@ public class AdminController {
             System.out.println(result);
             return "admin-edit-pricelistitem-form";
         }
+
         logger.info("!!! " + priceListId);
-        priceListItemRepository.save(priceListItem);
+        if(button.equals("save")) {
+            priceListItemRepository.save(priceListItem);
+        }
         model.addAttribute("priceList", priceListRepository.findByIdWithPriceListItems(Long.parseLong(priceListId)));
         return "admin-show-pricelist";
     }

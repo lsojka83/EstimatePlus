@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Controller
 //@Scope("session")
-@SessionAttributes({"estimate", "user", "userId"})
+@SessionAttributes({"estimate", "user", "userId", "estimateChanged"})
 @RequestMapping("/user")
 public class UserController {
 
@@ -101,8 +101,11 @@ public class UserController {
             return "user-edit-account";
         }
 
-        user.setPasswordUnhashed(user.getPassword());
-        user.setPassword(Security.hashPassword(user.getPassword()));
+        if (!user.getPassword().equals(userRepository.findById(user.getId()).get().getPassword())) {
+            user.setPasswordUnhashed(user.getPassword());
+            user.setPassword(Security.hashPassword(user.getPassword()));
+        }
+//        }
         userRepository.save(user);
         model.addAttribute("numberOfEstimates", userRepository.findByIdWithEstimates(user.getId()).getEstimates().size());
         model.addAttribute("estimates", userRepository.findByIdWithEstimates(user.getId()).getEstimates());
@@ -153,7 +156,7 @@ public class UserController {
 
             if (selectedEstimate != null) {
 
-                Estimate estimate = estimateRepository.findByNameAndUserName(selectedEstimate, ((User)httpSession.getAttribute("user")).getUserName());
+                Estimate estimate = estimateRepository.findByNameAndUserName(selectedEstimate, ((User) httpSession.getAttribute("user")).getUserName());
 //                Estimate estimate = estimateRepository.findByName(selectedEstimate);
                 estimate.sortItemsByPosition();
                 model.addAttribute("estimate", estimate);
@@ -161,18 +164,23 @@ public class UserController {
                 model.addAttribute("estimate", new Estimate());
             }
         }
+        httpSession.setAttribute("estimateChanged", false);
+        model.addAttribute("estimateChanged", false);
         return "estimate-form";
     }
+
     //show estimate form
     @GetMapping("/estimateform")
     public String showEstimateForm1(Model model,
-                                    @RequestParam(required = false) Long estimateId
+                                    @RequestParam(required = false) Long estimateId,
+                                    HttpSession httpSession
     ) {
         Estimate estimate = estimateRepository.findById(estimateId).get();
         estimate.sortItemsByPosition();
         model.addAttribute("estimate", estimate);
         model.addAttribute("excelFile", Excel.getExcelWorkbook(estimate));
-        logger.info("!!!!" + estimate);
+        httpSession.setAttribute("estimateChanged", false);
+        model.addAttribute("estimateChanged", false);
         return "estimate-form";
     }
 
@@ -235,8 +243,7 @@ public class UserController {
                 user.getEstimates().add(estimate);
                 userRepository.save(user);
             }
-
-            model.addAttribute("estimateChanged", false);
+            httpSession.setAttribute("estimateChanged", false);
         }
 
 
@@ -257,7 +264,7 @@ public class UserController {
                     }
             );
 
-            if(estimate!= null) {
+            if (estimate != null) {
                 estimateRepository.delete(estimate);
             }
 
@@ -276,7 +283,6 @@ public class UserController {
             if (!priceListItemRepository.findAllByUserIdAndReferenceNumber(user.getId(), searchedItemReferenceNumber).isEmpty()) {
                 model.addAttribute("searchResult",
                         priceListItemRepository.findAllByUserIdAndReferenceNumber(user.getId(), searchedItemReferenceNumber));
-                model.addAttribute("estimateChanged", true);
             }
         }
 
@@ -319,10 +325,12 @@ public class UserController {
                     logger.warn(e.getMessage());
                 }
             }
-            model.addAttribute("estimateChanged", true);
+            httpSession.setAttribute("estimateChanged", true);
         }
         estimate.sortItemsByPosition();
         model.addAttribute("estimate", estimate);
+
+        model.addAttribute("estimateChanged", httpSession.getAttribute("estimateChanged"));
         return "estimate-form";
     }
 
@@ -408,8 +416,10 @@ public class UserController {
 
     @PostMapping("/edititem")
     public String editUserItem(@Valid @ModelAttribute("userPriceListItem") PriceListItem
-                                       priceListItem, BindingResult result, Model model,
-                               HttpSession httpSession
+                                       priceListItem, BindingResult result,
+                               Model model,
+                               HttpSession httpSession,
+                               @RequestParam String button
     ) {
         User user = (User) httpSession.getAttribute("user");
 
@@ -417,7 +427,9 @@ public class UserController {
             System.out.println(result);
             return "user-add-item-form";
         }
-        priceListItemRepository.save(priceListItem);
+        if (button.equals("save")) {
+            priceListItemRepository.save(priceListItem);
+        }
         model.addAttribute("priceList", priceListRepository.findByIdWithPriceListItems(
                         userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
                 )
@@ -451,7 +463,9 @@ public class UserController {
             BindingResult result,
             @RequestParam String priceListItemId,
             Model model,
-            HttpSession httpSession
+            HttpSession httpSession,
+            @RequestParam String button
+
 
     ) {
         Estimate estimate = (Estimate) httpSession.getAttribute("estimate");
@@ -461,17 +475,19 @@ public class UserController {
         if (result.hasErrors()) {
             return "estimateitem-edit";
         }
-
-        int i = 0;
-        i = estimate.getEstimateItems().indexOf(estimate.getEstimateItems()
-                .stream()
-                .filter(ei -> ei.getPriceListItem().getId().equals(estimateItem.getPriceListItem().getId()))
-                .collect(Collectors.toList()).get(0));
-        estimate.getEstimateItems().remove(i);
-        estimate.getEstimateItems().add(i, estimateItem);
-        estimate.calculateAmounts();
+        if (button.equals("save")) {
+            int i = 0;
+            i = estimate.getEstimateItems().indexOf(estimate.getEstimateItems()
+                    .stream()
+                    .filter(ei -> ei.getPriceListItem().getId().equals(estimateItem.getPriceListItem().getId()))
+                    .collect(Collectors.toList()).get(0));
+            estimate.getEstimateItems().remove(i);
+            estimate.getEstimateItems().add(i, estimateItem);
+            estimate.calculateAmounts();
+            httpSession.setAttribute("estimateChanged", true);
+        }
         model.addAttribute("estimate", estimate);
-        model.addAttribute("estimateChanged", true);
+        model.addAttribute("estimateChanged", httpSession.getAttribute("estimateChanged"));
         return "estimate-form";
     }
 
@@ -491,7 +507,8 @@ public class UserController {
         estimate.renumberItemsPositions();
 
         model.addAttribute("estimate", estimate);
-        model.addAttribute("estimateChanged", true);
+        httpSession.setAttribute("estimateChanged", true);
+        model.addAttribute("estimateChanged", httpSession.getAttribute("estimateChanged"));
         return "estimate-form";
     }
 
@@ -528,9 +545,10 @@ public class UserController {
 
 //        httpSession.setAttribute("estimate",estimate);
             estimate.sortItemsByPosition();
+            httpSession.setAttribute("estimateChanged", true);
         }
         model.addAttribute("estimate", estimate);
-        model.addAttribute("estimateChanged", true);
+        model.addAttribute("estimateChanged", httpSession.getAttribute("estimateChanged"));
         return "estimate-form";
     }
 
@@ -550,23 +568,25 @@ public class UserController {
                 .collect(Collectors.toList()).get(0);
 
 
-            if (estimate.getEstimateItems().indexOf(eiToBeMoved) < estimate.getEstimateItems().size() - 1) {// can be moved down
+        if (estimate.getEstimateItems().indexOf(eiToBeMoved) < estimate.getEstimateItems().size() - 1) {// can be moved down
 
-                //DB operation
-                int indexOfLowerElement = estimate.getEstimateItems().indexOf(eiToBeMoved) + 1;
-                estimate.getEstimateItems().get(indexOfLowerElement)
-                        .setPositionInEstimate(
-                                estimate.getEstimateItems().get(indexOfLowerElement).getPositionInEstimate() - 1);
-                eiToBeMoved.setPositionInEstimate(eiToBeMoved.getPositionInEstimate() + 1);
+            //DB operation
+            int indexOfLowerElement = estimate.getEstimateItems().indexOf(eiToBeMoved) + 1;
+            estimate.getEstimateItems().get(indexOfLowerElement)
+                    .setPositionInEstimate(
+                            estimate.getEstimateItems().get(indexOfLowerElement).getPositionInEstimate() - 1);
+            eiToBeMoved.setPositionInEstimate(eiToBeMoved.getPositionInEstimate() + 1);
 
-                //list operation on estimate items list
-                Collections.swap(
-                        estimate.getEstimateItems(),
-                        estimate.getEstimateItems().indexOf(eiToBeMoved),
-                        estimate.getEstimateItems().indexOf(eiToBeMoved) + 1
-                );
+            //list operation on estimate items list
+            Collections.swap(
+                    estimate.getEstimateItems(),
+                    estimate.getEstimateItems().indexOf(eiToBeMoved),
+                    estimate.getEstimateItems().indexOf(eiToBeMoved) + 1
+            );
+            httpSession.setAttribute("estimateChanged", true);
+
         }
-        model.addAttribute("estimateChanged", true);
+        model.addAttribute("estimateChanged", httpSession.getAttribute("estimateChanged"));
         model.addAttribute("estimate", estimate);
         return "estimate-form";
 
@@ -644,7 +664,7 @@ public class UserController {
             @RequestParam String selectedPriceListId
     ) {
         User user = (User) httpSession.getAttribute("user");
-        if(user.getUserPriceList()!=null) {
+        if (user.getUserPriceList() != null) {
             if (user.getUserPriceList().getId().equals(priceListRepository.findById(Long.parseLong(selectedPriceListId)).get().getId())) {
                 model.addAttribute("isUserPricelist", "true");
             }

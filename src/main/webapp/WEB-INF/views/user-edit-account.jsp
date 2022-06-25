@@ -42,6 +42,7 @@
                                                 </div>
 
                                         <form:hidden path="admin"></form:hidden>
+                                        <form:hidden path="passwordUnhashed"></form:hidden>
 
                                         <div class="mt-4 mb-0">
                                             <div class="d-grid">

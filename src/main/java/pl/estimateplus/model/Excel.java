@@ -243,7 +243,7 @@ public class Excel {
 
             try {
                 s = entry.getValue().get(columnAssigment.unitNetPriceColumnNumber).trim();
-//                unitNetPrice = new BigDecimal(s).setScale(2);
+                unitNetPrice = new BigDecimal(s).setScale(2);
 
             } catch (Exception e) {
                 priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());

@@ -42,7 +42,8 @@
 
 
                                     <div>
-                                        <button type="submit" class="btn btn-primary btn-block">Save</button>
+                                        <button type="submit" name="button" value="save" class="btn btn-primary btn-block">Save</button>
+                                        <button type="submit" name="button" class="btn btn-primary btn-block">Save</button>
                                     </div>
                                 </form:form>
 

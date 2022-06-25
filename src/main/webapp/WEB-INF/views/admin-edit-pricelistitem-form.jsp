@@ -66,7 +66,8 @@
                       <form:input path="vendorName" value="${userName}"
                                   hidden="true"></form:input>
                       <div>
-                        <button type="submit" class="btn btn-primary btn-block">Save</button>
+                        <button type="submit" name="button" value="save" class="btn btn-primary btn-block">Save</button>
+                        <button type="submit" name="button" value="cancel"  class="btn btn-primary btn-block">Cancel</button>
                       </div>
                     </form:form>
 
