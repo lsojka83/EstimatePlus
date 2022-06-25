@@ -19,7 +19,7 @@
                 <label for="name">Name</label>
                 <form:input path="name" type="text"></form:input>
                 <form:errors path="name"/>
-                estimateId=${estimate.id}
+<%--                estimateId=${estimate.id}--%>
             </div>
         </div>
         <div class="card mb-4">
@@ -108,11 +108,6 @@
                     <button name="button" value="save" class="btn btn-success">Save estimate to DB</button>
                     <button name="button" value="delete" class="btn btn-danger" id="deleteButton" onclick="return confirm('Are you sure?')">Delete estimate from DB</button>
                     <button name="button" value="download" class="btn btn-primary">Download as Excel</button>
-<%--                    <form:button name="button" value="save" cssClass="btn btn-success">Save estimate to DB</form:button>--%>
-<%--                    <form:button name="button" value="delete"--%>
-<%--                                 cssClass="btn btn-danger">Delete estimate from DB</form:button>--%>
-<%--                    <form:button name="button" value="download"--%>
-<%--                                 cssClass="btn btn-primary">Download as Excel</form:button>--%>
                 </div>
                 <input name="estimateId" value="${estimate.id}" hidden>
                 </form:form>

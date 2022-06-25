@@ -13,7 +13,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD,ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Password {
-//    String message() default  "{password.error.message}";
     String message() default  Messages.INVALID_PASSWORD;
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

@@ -68,12 +68,4 @@ public class AppConfig implements WebMvcConfigurer{
         multipartResolver.setMaxUploadSize(20000000);
         return multipartResolver;
     }
-//
-//    @Bean
-//    public StandardServletMultipartResolver multipartResolver() {
-//        return new StandardServletMultipartResolver();
-//    }
-
-
-
 }

@@ -17,8 +17,8 @@
                         <form method="post" action="/admin/uploadfile" enctype="multipart/form-data">
                             SELECT A PRESET:
                             <select name="preset" class="btn bg-white">
-                                    <option value="-">-</option>
-                                    <option value="legrand">Legrand</option>
+                                    <option value="-">By selected columns</option>
+                                    <option value="legrand">Predefined - Legrand</option>
                             </select>
                             </p>
                             OR SELECT COLUMNS INDIVIDUALLY:
@@ -79,7 +79,7 @@
                             </select>
                             </p>
                             <p>
-                            <input name="button" value="Sava to DB" type="submit" class="btn bg-white">
+                            <input name="button" value="Save to DB" type="submit" class="btn bg-white">
                             </p>
 
                             <input type="hidden" name="firstRowIsColumnsNames" value="${firstRowIsColumnsNames}">

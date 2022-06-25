@@ -9,5 +9,4 @@ public class ColumnAssigment {
     public int unitNetPriceColumnNumber;
     public int unitColumnNumber;
     public int baseVatRateColumnNumber;
-
 }

@@ -47,7 +47,7 @@
 
                             <div class="form-floating mb-3">
                                 <form:input path="unitNetPrice" id="unitNetPrice"
-                                            type="number" cssClass="form-control"></form:input>
+                                            type="number" step="0.01" cssClass="form-control"></form:input>
                                 <form:errors path="unitNetPrice"/>
                                 <label for="unitNetPrice">Unit price</label>
                             </div>

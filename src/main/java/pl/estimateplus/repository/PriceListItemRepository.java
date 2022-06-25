@@ -19,6 +19,5 @@ public interface PriceListItemRepository extends JpaRepository<PriceListItem, Lo
             value = "SELECT * FROM pricelistitem LEFT JOIN pricelist_pricelistitem on pricelistitem.id = priceListItems_id left join user on PriceList_id = userPriceList_id where (userPriceList_id is null OR user.id = ?1) AND pricelistitem.referenceNumber LIKE ?2")
     List<PriceListItem> findAllByUserIdAndReferenceNumber(Long userId, String refNo);
 
-//    List<PriceListItem> findByReferenceNumber(String referenceNumber);
 }
 

@@ -26,10 +26,10 @@ public class PriceListItem {
     @NotBlank
     private String brand;
     private String comment;
-    //    @DecimalMin("0")
-    @DecimalMin(value = "0.0", inclusive = false)
+    @DecimalMin("0")
+//    @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal unitNetPrice;
-//    private BigDecimal unitNetPrice = BigDecimal.valueOf(0);
+    //    private BigDecimal unitNetPrice = BigDecimal.valueOf(0);
     @NotBlank
     private String unit;
     @Min(0)
@@ -40,7 +40,6 @@ public class PriceListItem {
 
     public PriceListItem() {
     }
-
     public PriceListItem(String vendorName, String referenceNumber, String description, String brand, String comment, BigDecimal unitNetPrice, String unit, Integer baseVatRate) {
         this.vendorName = vendorName;
         this.referenceNumber = referenceNumber;

@@ -13,9 +13,7 @@ public class Security {
         if (BCrypt.checkpw(candidate, hashed)) {
             return true;
         } else {
-           return false;
+            return false;
         }
     }
-
-
 }

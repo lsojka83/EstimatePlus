@@ -18,8 +18,6 @@ import pl.estimateplus.model.Security;
 import pl.estimateplus.repository.*;
 import pl.estimateplus.validator.PasswordValidator;
 
-import javax.persistence.Entity;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.HashMap;
@@ -52,16 +50,6 @@ public class AdminController {
         this.passwordValidator = passwordValidator;
     }
 
-//    @GetMapping("/import")
-//    public String importData() {
-//        List<PriceListItem> priceListItems = Excel.importExcelData();
-//        if(priceListItems != null) {
-//            priceListItemRepository.saveAll(priceListItems);
-//            return "show-pricelist-data";
-//        }
-//        return "";
-//    }
-
     @GetMapping("")
     public String dashboard(Model model) {
         model.addAttribute("userCount", userRepository.count());
@@ -74,7 +62,6 @@ public class AdminController {
         return "admin-file-upload-form";
     }
 
-//    @RequestMapping(value = "/uploadfilecolumnchooser", method = RequestMethod.POST, consumes = {"multipart/form-data"})
     @RequestMapping(value = "/uploadfilecolumnchooser", method = RequestMethod.POST)
     public String submit(
             @RequestParam("file") MultipartFile file,
@@ -91,21 +78,17 @@ public class AdminController {
             model.addAttribute("columnsFromFile", columnsAssignmentMap);
             System.out.println("!!!"+columnsAssignmentMap);
             httpSession.setAttribute("data", fileData);
-//            model.addAttribute("file", file);
-//            httpSession.setAttribute("file", file);
             model.addAttribute("firstRowIsColumnsNames","yes");
             model.addAttribute("fileName",fileName);
-//            return "forward:/admin/uploadfile";
             return "admin-upload-file-select-columns";
 
         }
-        return "file-upload-view";    }
+        return "file-upload-view";
+    }
 
-//    @RequestMapping(value = "/uploadfile", method = RequestMethod.POST, consumes = {"multipart/form-data"})
     @RequestMapping(value = "/uploadfile", method = RequestMethod.POST)
     public String submit(
             Model model,
-//            @RequestParam("file") MultipartFile file,
             @RequestParam String preset,
             @RequestParam String referenceNumber,
             @RequestParam String description,
@@ -148,11 +131,7 @@ public class AdminController {
             PriceList existingPriceList;
         priceList = Excel.importFromExcelData((Map<Integer, List<String>>)httpSession.getAttribute("data"), columnAssigment,firstRowIsColumnsNames, fileName);
 
-//            if (priceList.getErrorMessage() != null) {
-//                model.addAttribute("error", priceList.getErrorMessage());
-//                return "file-upload-view";
-//                return "file-upload-view";
-//            }
+
             if (priceListRepository.findByName(priceList.getName()) != null) {
                 existingPriceList = priceListRepository.findByName(priceList.getName());
                 logger.info("!!!" + priceList.getPriceListItems());
@@ -215,7 +194,6 @@ public class AdminController {
             return "admin-show-pricelist";
     }
 
-
     @GetMapping("/selectpricelist")
     public String selectPriceList(
             Model model
@@ -239,27 +217,20 @@ public class AdminController {
     public String deletePriceList(
             @RequestParam String deletePriseListId
     ) {
-//        priceListItemRepository.
         List<PriceListItem> priceListItems = priceListRepository.findByIdWithPriceListItems(Long.parseLong(deletePriseListId)).getPriceListItems();
         priceListRepository.deleteById(Long.parseLong(deletePriseListId));
+
         //remove from all estimates, where PRI is present
         for (PriceListItem pli : priceListItems) {
             removeEstimateItemByPriceListItemId(pli.getId());
         }
         priceListItemRepository.deleteAll(priceListItems);
+
         //update all estimates, where PRI is present
         recalculateALlEstimates();
 
         return "forward:/admin/selectpricelist";
     }
-
-
-    @GetMapping("/list")
-    public String list() {
-
-        return "admin-show-pricelist";
-    }
-
 
     //Edit pricelist item
     @GetMapping("/edititem")
@@ -373,10 +344,10 @@ public class AdminController {
 
     public void removeEstimateItemByPriceListItemId(Long id) {
         //remove from all estimates, where PRI is present
-        if (estimateItemRepository.findByPriceListItemId(id) != null) //get unempty list
+        if (estimateItemRepository.findAllByPriceListItemId(id) != null) //get unempty list
         {
 
-            List<Long> estimateItemIds = estimateItemRepository.findByPriceListItemId(id)
+            List<Long> estimateItemIds = estimateItemRepository.findAllByPriceListItemId(id)
                     .stream()
                     .map(ei -> ei.getId())
                     .collect(Collectors.toList());
@@ -391,6 +362,11 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/list")
+    public String list() {
+        return "admin-show-pricelist";
+    }
+
     private void recalculateALlEstimates() {
         List<Estimate> allEstimates = estimateRepository.findAll();
         for (Estimate ue : allEstimates) {
@@ -398,6 +374,8 @@ public class AdminController {
             estimateRepository.save(ue);
         }
     }
+
+
 
 
 }

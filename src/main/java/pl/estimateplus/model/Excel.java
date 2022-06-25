@@ -1,31 +1,20 @@
 package pl.estimateplus.model;
 
 
-import org.apache.commons.io.FileUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.format.CellNumberStringMod;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.core.io.ClassPathResource;
 
-import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 import pl.estimateplus.entity.Estimate;
 import pl.estimateplus.entity.EstimateItem;
 import pl.estimateplus.entity.PriceList;
 import pl.estimateplus.entity.PriceListItem;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,22 +27,6 @@ public class Excel {
     private static String fileLocation = TMP_DIR + "/importedFile.tmp";
     private static File file = new File(fileLocation);
     private static Path path = Paths.get(fileLocation);
-
-
-    public static void main(String[] args) throws IOException {
-//        importExcelData();
-
-//        File file = null; //direct run
-//        String fileLocation = "Legrand.xlsx";
-//        String fileLocation1 = "targetFile.tmp";
-//        Resource resource = new ClassPathResource(fileLocation);
-//        try {
-//            file = resource.getFile();
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        System.out.println(resource.getFile().getName().split("\\.")[0]);
-    }
 
     public static Map<Integer, String> getColumnsNames(MultipartFile multipartFile, String firstRowIsColumnsNames) {
 
@@ -242,7 +215,6 @@ public class Excel {
             }catch (Exception e)
             {
                 priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
-//                return priceList;
             }
 
             String description = "no description"; //description
@@ -253,7 +225,6 @@ public class Excel {
             }catch (Exception e)
             {
                 priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
-//                return priceList;
             }
 
             String brand = "-"; //brand
@@ -262,23 +233,20 @@ public class Excel {
             }catch (Exception e)
             {
                 priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
-//                return priceList;
             }
 
             String comment = "-"; //comment
 
             String s = "0";
-            BigDecimal unitNetPrice; //unitNetPrice
+            BigDecimal unitNetPrice = BigDecimal.valueOf(0.00); //unitNetPrice
+            unitNetPrice.setScale(2);
+
             try {
                 s = entry.getValue().get(columnAssigment.unitNetPriceColumnNumber).trim();
-                unitNetPrice = new BigDecimal(s).setScale(2);
+//                unitNetPrice = new BigDecimal(s).setScale(2);
 
             } catch (Exception e) {
-//                priceList.setErrorMessage(e.getMessage());
-//                s="0";
-//                unitNetPrice = new BigDecimal(s).setScale(2);
                 priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
-                return priceList;
             }
 
             String unit = "-"; //unit
@@ -288,14 +256,12 @@ public class Excel {
             catch (Exception e)
             {
                 priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
-//                return priceList;
             }
 
             int baseVatRate = 23;
 
 
             try {
-
                 if (!entry.getValue().get(columnAssigment.baseVatRateColumnNumber).isEmpty() && !entry.getValue().get(columnAssigment.baseVatRateColumnNumber).isBlank()) {
                     try {
                         if (entry.getValue().get(columnAssigment.baseVatRateColumnNumber).contains("\\.")) {
@@ -308,18 +274,18 @@ public class Excel {
 
                     } catch (NumberFormatException e) {
                         priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
-//                        return priceList;
                     } catch (Exception e) {
                         priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
-//                        return priceList;
                     }
                 }
             } catch (Exception e) {
                 priceList.setErrorMessage(priceList.getErrorMessage() + " - "+entry.getKey()+" - "+e.getMessage());
             }
-            //addedOn
-            PriceListItem priceListItem = new PriceListItem(vendorName, referenceNumber, description, brand, comment, unitNetPrice, unit, baseVatRate);
-            priceListItems.add(priceListItem);
+            //
+//            if(priceList.getErrorMessage()!=null) {
+                PriceListItem priceListItem = new PriceListItem(vendorName, referenceNumber, description, brand, comment, unitNetPrice, unit, baseVatRate);
+                 priceListItems.add(priceListItem);
+//            }/
 
         }
 

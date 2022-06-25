@@ -20,20 +20,14 @@ public interface EstimateItemRepository extends JpaRepository<EstimateItem, Long
     @Query(nativeQuery = true,value = "SELECT * FROM estimateplus.estimate_estimateitem WHERE estimateItems_id = ?1")
     EstimateItem findByItemInParentTable(Long id);
 
-//    @Modifying
-//    @Transactional
-//    @Query(nativeQuery = true,value = "DELETE FROM estimateplus.estimateitem WHERE id = ?1")
-//    void deleteById(String id);
+    @Modifying
+    @Transactional
+    @Query(nativeQuery = true,value = "DELETE FROM estimateplus.estimateitem WHERE id = ?1")
+    void deleteById(String id);
 
-
-//    @Query("SELECT e FROM Estimate e LEFT JOIN FETCH e.estimateItems i where i.id = :id")
-//    Estimate findByPriceListItemId(@Param("id") Long id);
-//
-//    @Query("SELECT ei FROM EstimateItem ei LEFT JOIN FETCH ei.priceListItem pi where pi.id = :id")
-//    EstimateItem findByPriceListItemId(@Param("id") Long id);
 
     @Query("SELECT ei FROM EstimateItem ei LEFT JOIN FETCH ei.priceListItem pi where pi.id = :id")
-    List<EstimateItem> findByPriceListItemId(@Param("id") Long id);
+    List<EstimateItem> findAllByPriceListItemId(@Param("id") Long id);
 
     @Query(nativeQuery = true, value = "SELECT * FROM estimateplus.estimateitem LEFT JOIN estimateplus.estimate_estimateitem On estimateitem.id = estimate_estimateitem.estimateItems_id WHERE Estimate_id is null")
     List<EstimateItem> findAllItemsNotPresentInParentJoiningTable();

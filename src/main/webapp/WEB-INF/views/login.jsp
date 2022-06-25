@@ -52,7 +52,9 @@
                             </div>
                             <div class="card-footer text-center py-3">
                                 <div class="small">
+                                    <form action="/addaccount" method="get">
                                     <button name="button" value="newAccount">New account</button>
+                                    </form>
                                 </div>
                             </div>
 

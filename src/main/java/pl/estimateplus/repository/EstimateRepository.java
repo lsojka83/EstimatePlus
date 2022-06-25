@@ -12,26 +12,9 @@ import java.util.List;
 
 public interface EstimateRepository extends JpaRepository<Estimate, Long> {
 
-//    List<Estimate> findAllByUser(User user);
-//    @Query("SELECT e FROM Estimate e LEFT JOIN FETCH e.name")
-//    Estimate findByUserIdAndEstimateName(Long userId, String estimateName);
-    Estimate findByName(String estimateName);
-
-//    Estimate findByUserIdAndEstimateName(Long userId, String estimateName);
-
-//        @Query("SELECT e FROM Estimate e LEFT JOIN FETCH e.name")
-//    Estimate findByUserIdAndEstimateName(Long userId, String estimateName);
-
-//    @Modifying
-//    @Transactional
-//    @Query(nativeQuery = true,value = "DELETE FROM estimateplus.estimate WHERE estimate.id = ?1")
-//    void deleteById(Long id);
-//
     @Query(value = "SELECT * FROM estimateplus.estimate e " +
             "JOIN  estimateplus.user_estimate ue ON e.id = ue.estimates_id " +
             "JOIN estimateplus.user u ON ue.User_id = u.id " +
             "WHERE e.name = ?1 AND u.userName = ?2",nativeQuery = true)
     Estimate findByNameAndUserName(String estimateName, String userName);
-
-
 }
