@@ -1,7 +1,5 @@
 package pl.estimateplus.entity;
 
-import pl.estimateplus.validator.Password;
-
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;

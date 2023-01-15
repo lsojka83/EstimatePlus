@@ -12,6 +12,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Entity
+@Table (name = "pricelistitem")
 public class PriceListItem {
 
     @Id

@@ -3,7 +3,6 @@ package pl.estimateplus.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pl.estimateplus.entity.PriceList;
 import pl.estimateplus.entity.User;
 
 public interface UserRepository extends JpaRepository<User,Long> {

@@ -3,8 +3,6 @@ package pl.estimateplus.entity;
 import javax.persistence.*;
 import javax.validation.constraints.Min;
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.List;
 
 @Entity
 public class EstimateItem{

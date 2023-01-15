@@ -31,7 +31,7 @@
                 <table id="datatablesSimple">
                     <thead>
                     <tr>
-                        <th>Id</th>
+<%--                        <th>Id</th>--%>
                         <th>#</th>
                         <th>Reference Number</th>
                         <th>Description</th>
@@ -54,7 +54,7 @@
 <%--                    <c:forEach var="estimateItem" items="${estimate.estimateItems}">--%>
                     <c:forEach var="estimateItem" items="${estimate.estimateItems}">
                         <tr>
-                            <td>${estimateItem.id}</td>
+<%--                            <td>${estimateItem.id}</td>--%>
                             <td>${estimateItem.positionInEstimate}</td>
                             <td>${estimateItem.priceListItem.referenceNumber}</td>
                             <td>${estimateItem.priceListItem.description}</td>

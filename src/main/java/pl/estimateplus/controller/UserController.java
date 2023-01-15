@@ -14,6 +14,7 @@ import pl.estimateplus.entity.*;
 import pl.estimateplus.model.Excel;
 import pl.estimateplus.model.Messages;
 import pl.estimateplus.model.Security;
+import pl.estimateplus.entity.*;
 import pl.estimateplus.repository.*;
 import pl.estimateplus.validator.PasswordValidator;
 
@@ -369,19 +370,20 @@ public class UserController {
     @PostMapping("/additem")
     public String addUserItem(@Valid @ModelAttribute("userPriceListItem") PriceListItem
                                       priceListItem, BindingResult result, Model model,
-                              HttpSession httpSession
+                              HttpSession httpSession,
+                              @RequestParam String button
     ) {
 
         User user = (User) httpSession.getAttribute("user");
         String userName = user.getUserName();
-
+        PriceList userPR = null;
+        if(button.equals("save")) {
         if (result.hasErrors()) {
             System.out.println(result);
             return "user-add-item-form";
         }
         priceListItem.setVendorName(userName);
         priceListItemRepository.save(priceListItem);
-        PriceList userPR = null;
         if (userRepository.findById(user.getId()).get().getUserPriceList() == null) {
             userPR = new PriceList();
             userPR.setUserOwned(true);
@@ -396,10 +398,18 @@ public class UserController {
                     userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
             );
         }
-        userPR.getPriceListItems().add(priceListItem);
-        userPR.setNumberOfItems(Long.valueOf(userPR.getPriceListItems().size()));
-        priceListRepository.save(userPR);
-        model.addAttribute("priceList", userPR);
+            userPR.getPriceListItems().add(priceListItem);
+            userPR.setNumberOfItems(Long.valueOf(userPR.getPriceListItems().size()));
+            priceListRepository.save(userPR);
+            model.addAttribute("priceList", userPR);
+        }
+        else {
+            model.addAttribute("priceList", priceListRepository.findByIdWithPriceListItems(
+                            userRepository.findByIdWithPricelist(user.getId()).getUserPriceList().getId()
+                    )
+            );
+
+        }
         return "user-show-pricelist";
     }
 

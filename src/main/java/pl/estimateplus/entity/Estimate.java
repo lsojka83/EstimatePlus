@@ -3,9 +3,7 @@ package pl.estimateplus.entity;
 import pl.estimateplus.converter.LocalDateTimeAttributeConverter;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
